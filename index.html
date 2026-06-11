@@ -330,9 +330,12 @@
 <div class="app-container">
     <!-- 사이드바 -->
     <aside class="app-sidebar">
-        <div class="brand-logo">
-            <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
-            <div class="brand-title">Data<br>Analyzer</div>
+        <div class="brand-logo" style="display:block; padding: 1rem 0.5rem; margin-bottom: 2rem;">
+            <div class="flex items-center" style="gap: 1rem; margin-bottom: 0.8rem;">
+                <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                <div class="brand-title">Data<br>Analyzer</div>
+            </div>
+            <div style="font-size: 0.8rem; color: hsla(0,0%,100%,0.5); font-weight: 500; letter-spacing: -0.3px;">동덕여고 가설 검증 프로그램</div>
         </div>
 
         <ul class="nav-list">
@@ -341,7 +344,7 @@
 
         <div class="sidebar-footer">
             <button class="btn btn-icon-label" onclick="toggleTheme()">
-                <i class="fa-solid fa-moon" id="theme-icon"></i> 다크 모드 토글
+                <i class="fa-solid fa-moon" id="theme-icon"></i> 다크 모드
             </button>
         </div>
     </aside>
@@ -361,6 +364,23 @@
             <div class="card glass" id="step1-card">
                 <h3><i class="fa-solid fa-file-csv"></i> Step 1. 데이터 파일 올리기</h3>
                 <p class="text-muted mb-4">분석할 CSV 파일을 아래 영역에 끌어다 놓거나 클릭해서 업로드하세요.</p>
+                
+                <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1.5rem; padding: 1rem;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <div>
+                        <strong>데이터 파일 구조 안내</strong>
+                        <p class="mt-2" style="font-size: 0.85rem; color: var(--text-main);">
+                            • 첫 번째 줄(행)은 <b>변수명(이름)</b>이어야 합니다.<br>
+                            • 두 번째 줄부터는 <b>숫자형 데이터</b>가 들어가야 합니다.
+                        </p>
+                        <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">
+                            공부시간, 시험성적<br>
+                            12, 85<br>
+                            15, 92<br>
+                            ...
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
