@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수학/과학 탐구용 데이터 분석기</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <style>
+        /* 1. 색상표 (Color Tokens) */
+        :root {
+            /* 배경 */
+            --bg-app:        hsl(220, 30%, 97%);
+            --bg-sidebar:    hsl(222, 35%, 15%);
+            --bg-card:       hsla(0, 0%, 100%, 0.8);
+            --bg-card-hover: hsla(0, 0%, 100%, 0.95);
+            --border-glass:  hsla(220, 20%, 50%, 0.15);
+
+            /* 텍스트 */
+            --text-main:  hsl(222, 30%, 15%);
+            --text-muted: hsl(220, 15%, 50%);
+            --text-light: hsl(0, 0%, 100%);
+
+            /* 핵심 액센트 (보라색) */
+            --primary:       hsl(255, 65%, 60%);
+            --primary-hover: hsl(255, 65%, 52%);
+            --primary-light: hsl(255, 65%, 95%);
+            --primary-glow:  hsla(255, 65%, 60%, 0.3);
+
+            --secondary:       hsl(220, 15%, 45%);
+            --secondary-hover: hsl(220, 15%, 38%);
+
+            /* 상태 색상 */
+            --success: hsl(145, 60%, 42%);  --success-light: hsl(145, 60%, 94%);
+            --warning: hsl(35, 85%, 50%);   --warning-light: hsl(35, 85%, 94%);
+            --danger:  hsl(5, 75%, 55%);    --danger-light:  hsl(5, 75%, 94%);
+            --info:    hsl(195, 75%, 45%);  --info-light:    hsl(195, 75%, 94%);
+
+            /* 그림자 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 20px -4px rgba(20, 20, 30, 0.08);
+            --shadow-lg: 0 16px 40px -10px rgba(20, 20, 30, 0.12);
+
+            /* 타이포그래피 */
+            --font-title: 'Outfit', 'Noto Sans KR', sans-serif;
+            --font-body:  'Inter', 'Noto Sans KR', sans-serif;
+
+            /* 여백 및 크기 */
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 24px;
+
+            /* 트랜지션 */
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-app:        hsl(222, 25%, 7%);
+            --bg-sidebar:    hsl(222, 30%, 10%);
+            --bg-card:       hsla(222, 20%, 15%, 0.65);
+            --bg-card-hover: hsla(222, 20%, 18%, 0.8);
+            --border-glass:  hsla(222, 20%, 80%, 0.08);
+
+            --text-main:  hsl(220, 20%, 88%);
+            --text-muted: hsl(220, 10%, 65%);
+            --text-light: hsl(220, 20%, 95%);
+
+            --primary:       hsl(255, 75%, 66%);
+            --primary-hover: hsl(255, 75%, 72%);
+            --primary-light: hsl(255, 30%, 15%);
+            --primary-glow:  hsla(255, 75%, 66%, 0.4);
+
+            --secondary:       hsl(220, 10%, 55%);
+            --secondary-hover: hsl(220, 10%, 62%);
+
+            --success: hsl(145, 60%, 50%);  --success-light: hsl(145, 30%, 13%);
+            --warning: hsl(35, 85%, 58%);   --warning-light: hsl(35, 30%, 13%);
+            --danger:  hsl(5, 75%, 62%);    --danger-light:  hsl(5, 30%, 13%);
+            --info:    hsl(195, 75%, 55%);  --info-light:    hsl(195, 30%, 13%);
+
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.45);
+        }
+
+        /* 2. 전역 스타일 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-title);
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
+        h2 { font-size: 1.3rem; }
+        h3 { font-size: 0.95rem; margin-bottom: 1rem; }
+
+        /* 유틸리티 클래스 */
+        .mt-2 { margin-top: 0.5rem; } .mt-3 { margin-top: 0.75rem; } .mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 1.5rem; }
+        .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
+        .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
+        .w-100 { width: 100%; } .text-center { text-align: center; } .text-muted { color: var(--text-muted); font-size: 0.85rem;}
+        .hidden { display: none !important; }
+        .flex { display: flex; } .flex-col { display: flex; flex-direction: column; }
+        .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+
+        /* 5. 레이아웃 골격 */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 사이드바 */
+        .app-sidebar {
+            width: 290px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+            padding: 1.2rem 1.1rem;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0.5rem;
+            margin-bottom: 2rem;
+        }
+        .brand-icon {
+            width: 42px; height: 42px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary), hsl(190, 75%, 50%));
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.2rem;
+        }
+        .brand-title {
+            color: var(--text-light);
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 1.1rem;
+            line-height: 1.2;
+        }
+
+        .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .nav-item {
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            color: hsla(0,0%,100%,0.6);
+            display: flex; align-items: center; gap: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-weight: 500; font-size: 0.9rem;
+        }
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: var(--text-light);
+        }
+        .nav-item.active {
+            background-color: var(--primary);
+            color: var(--text-light);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid hsla(0,0%,100%,0.1); }
+
+        /* 본문 영역 */
+        .app-content {
+            flex-grow: 1;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem 2.5rem;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        /* 6. 컴포넌트 */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-smooth);
+            margin-bottom: 1.5rem;
+        }
+        .card.glass {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: hsla(255, 65%, 60%, 0.15);
+        }
+
+        /* 버튼 */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 0.5rem; border: none; cursor: pointer;
+            border-radius: var(--radius-sm); font-weight: 500;
+            padding: 0.65rem 1.25rem; font-family: var(--font-body);
+            transition: var(--transition-smooth); font-size: 0.9rem;
+        }
+        .btn-primary {
+            background-color: var(--primary); color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            box-shadow: 0 4px 12px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background-color: hsla(220,15%,50%,0.1);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+        }
+        .btn-secondary:hover {
+            background-color: hsla(220,15%,50%,0.2);
+        }
+        .btn-icon-label {
+            width: 100%; justify-content: flex-start;
+            background: transparent; color: hsla(0,0%,100%,0.6);
+        }
+
+        /* 입력 폼 */
+        .form-control {
+            width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm);
+            border: 1px solid var(--border-glass); background: var(--bg-card);
+            color: var(--text-main); font-size: 0.85rem; font-family: var(--font-body);
+            transition: var(--transition-smooth); outline: none;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label {
+            font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem; color: var(--text-main);
+        }
+
+        /* 알림/뱃지 */
+        .alert {
+            padding: 1rem 1.2rem; border-radius: var(--radius-md);
+            display: flex; align-items: flex-start; gap: 1rem;
+            margin-top: 1rem; border: 1px solid transparent;
+        }
+        .alert-success { background-color: var(--success-light); border-color: hsla(145, 60%, 42%, 0.2); color: var(--text-main); }
+        .alert-success i { color: var(--success); font-size: 1.2rem; }
+        
+        .alert-info { background-color: var(--info-light); border-color: hsla(195, 75%, 45%, 0.2); color: var(--text-main); }
+        .alert-info i { color: var(--info); font-size: 1.2rem; }
+        
+        .alert-warning { background-color: var(--warning-light); border-color: hsla(35, 85%, 50%, 0.2); color: var(--text-main); }
+        .alert-warning i { color: var(--warning); font-size: 1.2rem; }
+
+        .badge {
+            display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px;
+            font-size: 0.75rem; font-weight: 600;
+        }
+        .badge-primary { background-color: var(--primary-light); color: var(--primary); }
+
+        /* 드롭존 */
+        .dropzone {
+            border: 2px dashed var(--primary);
+            background-color: var(--primary-light);
+            border-radius: var(--radius-md);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+        .dropzone:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        .dropzone i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; transition: var(--transition-smooth); }
+        .dropzone:hover i { transform: translateY(-5px); animation: bounce 1s infinite alternate; }
+
+        /* 데이터 테이블 */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-sm);
+            max-height: 300px;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-glass); }
+        th { background-color: var(--bg-app); font-weight: 600; position: sticky; top: 0; z-index: 1; }
+        
+        /* 텍스트 수치 */
+        .stat-value { font-family: var(--font-title); font-size: 2.2rem; font-weight: 800; color: var(--primary); }
+
+        /* 키프레임 */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- 사이드바 -->
+    <aside class="app-sidebar">
+        <div class="brand-logo">
+            <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
+            <div class="brand-title">Data<br>Analyzer</div>
+        </div>
+
+        <ul class="nav-list">
+            <li class="nav-item active"><i class="fa-solid fa-flask"></i> 가설 검증</li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <button class="btn btn-icon-label" onclick="toggleTheme()">
+                <i class="fa-solid fa-moon" id="theme-icon"></i> 다크 모드 토글
+            </button>
+        </div>
+    </aside>
+
+    <!-- 본문 영역 -->
+    <main class="app-content">
+        <header class="content-header">
+            <div>
+                <h1>가설 검증 연구소 🔬</h1>
+                <p class="text-muted mt-2">두 변수 간에 어떤 관계가 있는지 과학적으로 분석해 보세요.</p>
+            </div>
+        </header>
+
+        <div class="content-body fade-in">
+            
+            <!-- Step 1: 데이터 업로드 -->
+            <div class="card glass" id="step1-card">
+                <h3><i class="fa-solid fa-file-csv"></i> Step 1. 데이터 파일 올리기</h3>
+                <p class="text-muted mb-4">분석할 CSV 파일을 아래 영역에 끌어다 놓거나 클릭해서 업로드하세요.</p>
+                
+                <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <h4>여기로 파일을 드래그하거나 클릭하세요</h4>
+                    <p class="text-muted mt-2">CSV 형식 지원</p>
+                    <input type="file" id="fileInput" accept=".csv" class="hidden">
+                </div>
+            </div>
+
+            <!-- 데이터 미리보기 -->
+            <div class="card glass hidden fade-in" id="preview-card">
+                <h3>👀 데이터 미리보기</h3>
+                <div class="table-container mt-4" id="table-container"></div>
+            </div>
+
+            <!-- Step 2: 변수 선택 -->
+            <div class="card glass hidden fade-in" id="step2-card">
+                <h3><i class="fa-solid fa-bullseye"></i> Step 2. 분석할 변수 매핑</h3>
+                <div id="col-error" class="alert alert-warning hidden">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <strong>숫자형 데이터 부족</strong>
+                        <p class="text-muted">상관관계를 분석하려면 숫자로 된 열이 최소 2개 이상 필요합니다. 다른 파일을 올려주세요.</p>
+                    </div>
+                </div>
+
+                <div id="col-selectors" class="grid-2 mt-4 hidden">
+                    <div class="form-group">
+                        <label for="xCol">X축 (독립변수: 원인이 되는 값)</label>
+                        <select id="xCol" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="yCol">Y축 (종속변수: 결과가 되는 값)</label>
+                        <select id="yCol" class="form-control"></select>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-between items-center hidden" id="analyze-action">
+                    <span class="text-muted">변수를 모두 선택했다면 분석을 시작하세요.</span>
+                    <button class="btn btn-primary" onclick="runAnalysis()">
+                        <i class="fa-solid fa-rocket"></i> 데이터 분석 시작!
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: 분석 결과 -->
+            <div class="card glass hidden fade-in" id="result-card">
+                <div class="flex justify-between items-center mb-6">
+                    <h3><i class="fa-solid fa-square-poll-vertical"></i> 분석 결과 레포트</h3>
+                    <button class="btn btn-secondary" onclick="downloadReport()">
+                        <i class="fa-solid fa-download"></i> 요약 다운로드
+                    </button>
+                </div>
+
+                <div class="grid-2 mb-6">
+                    <div class="card glass" style="margin-bottom:0; background:var(--bg-app)">
+                        <div class="text-muted">피어슨 상관계수 (r)</div>
+                        <div class="stat-value mt-2" id="res-r">0.0000</div>
+                        <p class="text-muted mt-2" style="font-size:0.75rem;">1에 가까울수록 강한 양의 상관, -1에 가까울수록 강한 음의 상관</p>
+                    </div>
+                    <div class="card glass" style="margin-bottom:0; background:var(--bg-app)">
+                        <div class="text-muted">유의확률 (p-value)</div>
+                        <div class="stat-value mt-2" id="res-p">0.0000</div>
+                        <p class="text-muted mt-2" style="font-size:0.75rem;">0.05 미만일 경우 통계적으로 매우 유의미함을 뜻함</p>
+                    </div>
+                </div>
+
+                <div id="interpretation-box"></div>
+
+                <!-- 차트 -->
+                <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
+                <p class="text-muted mb-4">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
+                <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
+                
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    // --- 테마 토글 ---
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const icon = document.getElementById('theme-icon');
+        if (current === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+            icon.classList.replace('fa-sun', 'fa-moon');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            icon.classList.replace('fa-moon', 'fa-sun');
+        }
+        
+        // 차트가 렌더링되어 있으면 테마에 맞게 다시 그림
+        if (window.currentChartData) {
+            renderChart(window.currentChartData.xData, window.currentChartData.yData, window.currentChartData.xLabel, window.currentChartData.yLabel, window.currentChartData.slope, window.currentChartData.intercept);
+        }
+    }
+
+    // --- 글로벌 변수 ---
+    let globalData = [];
+    let numericColumns = [];
+
+    // --- 파일 업로드 로직 ---
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.transform = "scale(1.02)"; });
+    dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.style.transform = "scale(1)"; });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.transform = "scale(1)";
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFile(fileInput.files[0]);
+        }
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    function handleFile(file) {
+        Papa.parse(file, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                globalData = results.data;
+                renderTable(globalData);
+                processColumns(globalData);
+            },
+            error: function(err) {
+                alert("파일을 읽는 중 오류가 발생했습니다.");
+            }
+        });
+    }
+
+    // --- 데이터 테이블 렌더링 ---
+    function renderTable(data) {
+        if(data.length === 0) return;
+        const container = document.getElementById('table-container');
+        let html = '<table><thead><tr>';
+        const headers = Object.keys(data[0]);
+        headers.forEach(h => html += `<th>${h}</th>`);
+        html += '</tr></thead><tbody>';
+        
+        const rowsToShow = Math.min(data.length, 5);
+        for(let i=0; i<rowsToShow; i++) {
+            html += '<tr>';
+            headers.forEach(h => {
+                html += `<td>${data[i][h] !== null ? data[i][h] : ''}</td>`;
+            });
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+        document.getElementById('preview-card').classList.remove('hidden');
+    }
+
+    // --- 변수 필터링 ---
+    function processColumns(data) {
+        if(data.length === 0) return;
+        const headers = Object.keys(data[0]);
+        numericColumns = headers.filter(h => {
+            // 첫 5행을 보고 숫자형인지 유추
+            for(let i=0; i<Math.min(5, data.length); i++) {
+                if (typeof data[i][h] === 'number') return true;
+            }
+            return false;
+        });
+
+        const step2 = document.getElementById('step2-card');
+        const colError = document.getElementById('col-error');
+        const colSelectors = document.getElementById('col-selectors');
+        const analyzeAction = document.getElementById('analyze-action');
+        
+        step2.classList.remove('hidden');
+
+        if(numericColumns.length < 2) {
+            colError.classList.remove('hidden');
+            colSelectors.classList.add('hidden');
+            analyzeAction.classList.add('hidden');
+        } else {
+            colError.classList.add('hidden');
+            colSelectors.classList.remove('hidden');
+            analyzeAction.classList.remove('hidden');
+            
+            populateSelect('xCol', numericColumns, numericColumns[0]);
+            populateSelect('yCol', numericColumns, numericColumns[1]);
+        }
+    }
+
+    function populateSelect(id, options, defaultVal) {
+        const select = document.getElementById(id);
+        select.innerHTML = '';
+        options.forEach(opt => {
+            const el = document.createElement('option');
+            el.value = opt; el.textContent = opt;
+            if(opt === defaultVal) el.selected = true;
+            select.appendChild(el);
+        });
+    }
+
+    // Y축 셀렉트 박스에서 X축과 중복 방지 (기존 Streamlit 논리)
+    document.getElementById('xCol').addEventListener('change', (e) => {
+        const xVal = e.target.value;
+        const yVal = document.getElementById('yCol').value;
+        populateSelect('yCol', numericColumns.filter(c => c !== xVal), yVal === xVal ? numericColumns.filter(c => c !== xVal)[0] : yVal);
+    });
+
+    // --- 통계 연산 및 결과 표시 ---
+    function runAnalysis() {
+        const xCol = document.getElementById('xCol').value;
+        const yCol = document.getElementById('yCol').value;
+
+        // 결측치 제거
+        let xData = [];
+        let yData = [];
+        globalData.forEach(row => {
+            if(typeof row[xCol] === 'number' && typeof row[yCol] === 'number') {
+                xData.push(row[xCol]);
+                yData.push(row[yCol]);
+            }
+        });
+
+        if(xData.length < 3) {
+            alert("분석을 위한 유효한 데이터가 부족합니다.");
+            return;
+        }
+
+        // jStat 연산
+        const corr = jStat.corrcoeff(xData, yData);
+        const n = xData.length;
+        
+        // T-test for correlation: t = r * sqrt(n-2) / sqrt(1-r^2)
+        const t_stat = corr * Math.sqrt(n - 2) / Math.sqrt(1 - corr * corr);
+        // p-value from student's t distribution (2-tailed)
+        const p_value = jStat.studentt.pdf(t_stat, n - 2) * 2; // approximation or exactly cdf based
+        const true_p_value = 2 * (1 - jStat.studentt.cdf(Math.abs(t_stat), n - 2));
+
+        // 단순 선형 회귀 (추세선 용)
+        // slope = r * (sy / sx)
+        const sx = jStat.stdev(xData, true);
+        const sy = jStat.stdev(yData, true);
+        const slope = corr * (sy / sx);
+        const intercept = jStat.mean(yData) - slope * jStat.mean(xData);
+
+        // UI 업데이트
+        document.getElementById('result-card').classList.remove('hidden');
+        document.getElementById('res-r').textContent = corr.toFixed(4);
+        document.getElementById('res-p').textContent = true_p_value.toFixed(4);
+
+        const interpBox = document.getElementById('interpretation-box');
+        if(true_p_value < 0.05) {
+            interpBox.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                        <strong>가설 검증 성공!</strong>
+                        <p>p-value가 0.05보다 작습니다! 학생의 가설(두 변수 간에 밀접한 관계가 있다)이 통계적으로 유의미하다는 뜻입니다. 🎉</p>
+                    </div>
+                </div>`;
+        } else {
+            interpBox.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <div>
+                        <strong>관계성 입증 부족</strong>
+                        <p>p-value가 0.05보다 크네요. 아쉽지만 현재 데이터로는 두 변수 간의 뚜렷한 관계를 확신하기 어렵습니다. 데이터 양을 늘리거나 다른 변수를 찾아보는 건 어떨까요? 🤔</p>
+                    </div>
+                </div>`;
+        }
+
+        // 차트 렌더링
+        window.currentChartData = {xData, yData, xLabel: xCol, yLabel: yCol, slope, intercept};
+        renderChart(xData, yData, xCol, yCol, slope, intercept);
+    }
+
+    function renderChart(xData, yData, xLabel, yLabel, slope, intercept) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#e2e8f0' : '#1a202c';
+        const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const paperColor = 'rgba(0,0,0,0)'; // transparent
+
+        const scatter = {
+            x: xData,
+            y: yData,
+            mode: 'markers',
+            type: 'scatter',
+            name: '데이터',
+            marker: { color: 'hsl(255, 65%, 60%)', size: 8, opacity: 0.7 }
+        };
+
+        const minX = Math.min(...xData);
+        const maxX = Math.max(...xData);
+        const trendline = {
+            x: [minX, maxX],
+            y: [slope * minX + intercept, slope * maxX + intercept],
+            mode: 'lines',
+            type: 'scatter',
+            name: '추세선',
+            line: { color: 'hsl(5, 75%, 55%)', dash: 'dash', width: 2 }
+        };
+
+        const layout = {
+            autosize: true,
+            plot_bgcolor: paperColor,
+            paper_bgcolor: paperColor,
+            font: { color: textColor, family: 'Inter' },
+            xaxis: { title: xLabel, gridcolor: gridColor, zerolinecolor: gridColor },
+            yaxis: { title: yLabel, gridcolor: gridColor, zerolinecolor: gridColor },
+            margin: { l: 50, r: 20, t: 20, b: 50 }
+        };
+
+        const config = { responsive: true, displayModeBar: true, displaylogo: false };
+
+        Plotly.newPlot('chart-container', [scatter, trendline], layout, config);
+    }
+
+    // --- 파일 다운로드 ---
+    function downloadReport() {
+        if(!window.currentChartData) return;
+        const xCol = window.currentChartData.xLabel;
+        const yCol = window.currentChartData.yLabel;
+        const rVal = document.getElementById('res-r').textContent;
+        const pVal = document.getElementById('res-p').textContent;
+        const isSig = parseFloat(pVal) < 0.05;
+
+        let result_text = `분석 결과 요약\n\n`;
+        result_text += `- X축: ${xCol}\n`;
+        result_text += `- Y축: ${yCol}\n`;
+        result_text += `- 상관계수(r): ${rVal}\n`;
+        result_text += `- p-value: ${pVal}\n\n`;
+        result_text += `결론: ${isSig ? "두 변수 간에 유의미한 관계가 있습니다." : "두 변수 간에 유의미한 관계를 찾기 어렵습니다."}`;
+
+        const blob = new Blob([result_text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "analysis_result.txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+</script>
+</body>
+</html>
