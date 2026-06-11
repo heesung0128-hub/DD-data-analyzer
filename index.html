@@ -17,23 +17,21 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
 
     <style>
         /* 1. 색상표 (Color Tokens) */
         :root {
-            /* 배경 */
             --bg-app:        hsl(220, 30%, 97%);
             --bg-sidebar:    hsl(222, 35%, 15%);
             --bg-card:       hsla(0, 0%, 100%, 0.8);
             --bg-card-hover: hsla(0, 0%, 100%, 0.95);
             --border-glass:  hsla(220, 20%, 50%, 0.15);
 
-            /* 텍스트 */
             --text-main:  hsl(222, 30%, 15%);
             --text-muted: hsl(220, 15%, 50%);
             --text-light: hsl(0, 0%, 100%);
 
-            /* 핵심 액센트 (보라색) */
             --primary:       hsl(255, 65%, 60%);
             --primary-hover: hsl(255, 65%, 52%);
             --primary-light: hsl(255, 65%, 95%);
@@ -42,27 +40,21 @@
             --secondary:       hsl(220, 15%, 45%);
             --secondary-hover: hsl(220, 15%, 38%);
 
-            /* 상태 색상 */
             --success: hsl(145, 60%, 42%);  --success-light: hsl(145, 60%, 94%);
             --warning: hsl(35, 85%, 50%);   --warning-light: hsl(35, 85%, 94%);
             --danger:  hsl(5, 75%, 55%);    --danger-light:  hsl(5, 75%, 94%);
             --info:    hsl(195, 75%, 45%);  --info-light:    hsl(195, 75%, 94%);
 
-            /* 그림자 */
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 8px 20px -4px rgba(20, 20, 30, 0.08);
             --shadow-lg: 0 16px 40px -10px rgba(20, 20, 30, 0.12);
 
-            /* 타이포그래피 */
             --font-title: 'Outfit', 'Noto Sans KR', sans-serif;
             --font-body:  'Inter', 'Noto Sans KR', sans-serif;
 
-            /* 여백 및 크기 */
             --radius-sm: 8px;
             --radius-md: 14px;
             --radius-lg: 24px;
-
-            /* 트랜지션 */
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -82,9 +74,6 @@
             --primary-light: hsl(255, 30%, 15%);
             --primary-glow:  hsla(255, 75%, 66%, 0.4);
 
-            --secondary:       hsl(220, 10%, 55%);
-            --secondary-hover: hsl(220, 10%, 62%);
-
             --success: hsl(145, 60%, 50%);  --success-light: hsl(145, 30%, 13%);
             --warning: hsl(35, 85%, 58%);   --warning-light: hsl(35, 30%, 13%);
             --danger:  hsl(5, 75%, 62%);    --danger-light:  hsl(5, 30%, 13%);
@@ -95,7 +84,6 @@
             --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.45);
         }
 
-        /* 2. 전역 스타일 */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: var(--font-body);
@@ -106,18 +94,13 @@
             overflow: hidden;
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-title);
-            font-weight: 600;
-            color: var(--text-main);
-        }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-title); font-weight: 600; color: var(--text-main); }
         h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
         h2 { font-size: 1.3rem; }
         h3 { font-size: 0.95rem; margin-bottom: 1rem; }
 
-        /* 유틸리티 클래스 */
         .mt-2 { margin-top: 0.5rem; } .mt-3 { margin-top: 0.75rem; } .mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 1.5rem; }
-        .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; } .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
         .gap-2 { gap: 0.5rem; } .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
         .w-100 { width: 100%; } .text-center { text-align: center; } .text-muted { color: var(--text-muted); font-size: 0.85rem;}
         .hidden { display: none !important; }
@@ -125,200 +108,84 @@
         .items-center { align-items: center; } .justify-between { justify-content: space-between; }
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
 
-        /* 5. 레이아웃 골격 */
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
+        .app-container { display: flex; min-height: 100vh; }
 
-        /* 사이드바 */
         .app-sidebar {
-            width: 290px;
-            background-color: var(--bg-sidebar);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
-            padding: 1.2rem 1.1rem;
-            flex-shrink: 0;
-            z-index: 10;
+            width: 290px; background-color: var(--bg-sidebar); display: flex; flex-direction: column;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.1); padding: 1.2rem 1.1rem; flex-shrink: 0; z-index: 10;
         }
 
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 0.5rem;
-            margin-bottom: 2rem;
-        }
+        .brand-logo { display:block; padding: 1rem 0.5rem; margin-bottom: 2rem; }
         .brand-icon {
-            width: 42px; height: 42px;
-            border-radius: var(--radius-md);
+            width: 42px; height: 42px; border-radius: var(--radius-md);
             background: linear-gradient(135deg, var(--primary), hsl(190, 75%, 50%));
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;
         }
-        .brand-title {
-            color: var(--text-light);
-            font-family: var(--font-title);
-            font-weight: 700;
-            font-size: 1.1rem;
-            line-height: 1.2;
-        }
+        .brand-title { color: var(--text-light); font-family: var(--font-title); font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
 
         .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
         .nav-item {
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-sm);
-            color: hsla(0,0%,100%,0.6);
-            display: flex; align-items: center; gap: 0.75rem;
-            cursor: pointer;
-            transition: var(--transition-smooth);
+            padding: 0.75rem 1rem; border-radius: var(--radius-sm); color: hsla(0,0%,100%,0.6);
+            display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: var(--transition-smooth);
             font-weight: 500; font-size: 0.9rem;
         }
-        .nav-item:hover {
-            background-color: rgba(255, 255, 255, 0.08);
-            color: var(--text-light);
-        }
-        .nav-item.active {
-            background-color: var(--primary);
-            color: var(--text-light);
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.08); color: var(--text-light); }
+        .nav-item.active { background-color: var(--primary); color: var(--text-light); box-shadow: 0 4px 12px var(--primary-glow); }
 
         .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid hsla(0,0%,100%,0.1); }
 
-        /* 본문 영역 */
-        .app-content {
-            flex-grow: 1;
-            height: 100vh;
-            overflow-y: auto;
-            padding: 2rem 2.5rem;
-        }
+        .app-content { flex-grow: 1; height: 100vh; overflow-y: auto; padding: 2rem 2.5rem; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
 
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
-        }
-
-        /* 6. 컴포넌트 */
         .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-md);
-            padding: 1.5rem;
-            box-shadow: var(--shadow-md);
-            transition: var(--transition-smooth);
-            margin-bottom: 1.5rem;
+            background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-md);
+            padding: 1.5rem; box-shadow: var(--shadow-md); transition: var(--transition-smooth); margin-bottom: 1.5rem;
         }
-        .card.glass {
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-            border-color: hsla(255, 65%, 60%, 0.15);
-        }
+        .card.glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .card:hover { box-shadow: var(--shadow-lg); border-color: hsla(255, 65%, 60%, 0.15); }
 
-        /* 버튼 */
         .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 0.5rem; border: none; cursor: pointer;
-            border-radius: var(--radius-sm); font-weight: 500;
-            padding: 0.65rem 1.25rem; font-family: var(--font-body);
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; cursor: pointer;
+            border-radius: var(--radius-sm); font-weight: 500; padding: 0.65rem 1.25rem; font-family: var(--font-body);
             transition: var(--transition-smooth); font-size: 0.9rem;
         }
-        .btn-primary {
-            background-color: var(--primary); color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            box-shadow: 0 4px 12px var(--primary-glow);
-            transform: translateY(-1px);
-        }
-        .btn-secondary {
-            background-color: hsla(220,15%,50%,0.1);
-            border: 1px solid var(--border-glass);
-            color: var(--text-main);
-        }
-        .btn-secondary:hover {
-            background-color: hsla(220,15%,50%,0.2);
-        }
-        .btn-icon-label {
-            width: 100%; justify-content: flex-start;
-            background: transparent; color: hsla(0,0%,100%,0.6);
-        }
+        .btn-primary { background-color: var(--primary); color: #fff; }
+        .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 12px var(--primary-glow); transform: translateY(-1px); }
+        .btn-secondary { background-color: hsla(220,15%,50%,0.1); border: 1px solid var(--border-glass); color: var(--text-main); }
+        .btn-secondary:hover { background-color: hsla(220,15%,50%,0.2); }
+        .btn-icon-label { width: 100%; justify-content: flex-start; background: transparent; color: hsla(0,0%,100%,0.6); }
 
-        /* 입력 폼 */
         .form-control {
-            width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm);
-            border: 1px solid var(--border-glass); background: var(--bg-card);
-            color: var(--text-main); font-size: 0.85rem; font-family: var(--font-body);
-            transition: var(--transition-smooth); outline: none;
+            width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); 
+            background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; font-family: var(--font-body); outline: none;
         }
-        .form-control:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-glow);
-        }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
         .form-group { margin-bottom: 1rem; }
-        .form-group label {
-            font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem; color: var(--text-main);
-        }
+        .form-group label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.4rem; color: var(--text-main); }
 
-        /* 알림/뱃지 */
-        .alert {
-            padding: 1rem 1.2rem; border-radius: var(--radius-md);
-            display: flex; align-items: flex-start; gap: 1rem;
-            margin-top: 1rem; border: 1px solid transparent;
-        }
+        .alert { padding: 1rem 1.2rem; border-radius: var(--radius-md); display: flex; align-items: flex-start; gap: 1rem; margin-top: 1rem; border: 1px solid transparent; }
         .alert-success { background-color: var(--success-light); border-color: hsla(145, 60%, 42%, 0.2); color: var(--text-main); }
         .alert-success i { color: var(--success); font-size: 1.2rem; }
-        
         .alert-info { background-color: var(--info-light); border-color: hsla(195, 75%, 45%, 0.2); color: var(--text-main); }
         .alert-info i { color: var(--info); font-size: 1.2rem; }
-        
         .alert-warning { background-color: var(--warning-light); border-color: hsla(35, 85%, 50%, 0.2); color: var(--text-main); }
         .alert-warning i { color: var(--warning); font-size: 1.2rem; }
 
-        .badge {
-            display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px;
-            font-size: 0.75rem; font-weight: 600;
-        }
-        .badge-primary { background-color: var(--primary-light); color: var(--primary); }
-
-        /* 드롭존 */
         .dropzone {
-            border: 2px dashed var(--primary);
-            background-color: var(--primary-light);
-            border-radius: var(--radius-md);
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition-smooth);
+            border: 2px dashed var(--primary); background-color: var(--primary-light); border-radius: var(--radius-md);
+            padding: 3rem 2rem; text-align: center; cursor: pointer; transition: var(--transition-smooth);
         }
-        .dropzone:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px var(--primary-glow);
-        }
+        .dropzone:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--primary-glow); }
         .dropzone i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; transition: var(--transition-smooth); }
         .dropzone:hover i { transform: translateY(-5px); animation: bounce 1s infinite alternate; }
 
-        /* 데이터 테이블 */
-        .table-container {
-            overflow-x: auto;
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
-            max-height: 300px;
-        }
+        .table-container { overflow-x: auto; border: 1px solid var(--border-glass); border-radius: var(--radius-sm); max-height: 300px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-glass); }
         th { background-color: var(--bg-app); font-weight: 600; position: sticky; top: 0; z-index: 1; }
         
-        /* 텍스트 수치 */
         .stat-value { font-family: var(--font-title); font-size: 2.2rem; font-weight: 800; color: var(--primary); }
 
-        /* 키프레임 */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -330,7 +197,7 @@
 <div class="app-container">
     <!-- 사이드바 -->
     <aside class="app-sidebar">
-        <div class="brand-logo" style="display:block; padding: 1rem 0.5rem; margin-bottom: 2rem;">
+        <div class="brand-logo">
             <div class="flex items-center" style="gap: 1rem; margin-bottom: 0.8rem;">
                 <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
                 <div class="brand-title">Data<br>Analyzer</div>
@@ -339,7 +206,12 @@
         </div>
 
         <ul class="nav-list">
-            <li class="nav-item active"><i class="fa-solid fa-flask"></i> 가설 검증</li>
+            <li class="nav-item active" id="nav-step1" onclick="switchView('step1')">
+                <i class="fa-solid fa-file-import"></i> 데이터 입력
+            </li>
+            <li class="nav-item" id="nav-step2" onclick="switchView('step2')" style="pointer-events: none; opacity: 0.5;">
+                <i class="fa-solid fa-flask"></i> 가설 검증
+            </li>
         </ul>
 
         <div class="sidebar-footer">
@@ -358,103 +230,137 @@
             </div>
         </header>
 
-        <div class="content-body fade-in">
+        <div class="content-body">
             
-            <!-- Step 1: 데이터 업로드 -->
-            <div class="card glass" id="step1-card">
-                <h3><i class="fa-solid fa-file-csv"></i> Step 1. 데이터 파일 올리기</h3>
-                <p class="text-muted mb-4">분석할 CSV 파일을 아래 영역에 끌어다 놓거나 클릭해서 업로드하세요.</p>
-                
-                <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1.5rem; padding: 1rem;">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <div>
-                        <strong>데이터 파일 구조 안내</strong>
-                        <p class="mt-2" style="font-size: 0.85rem; color: var(--text-main);">
-                            • 첫 번째 줄(행)은 <b>변수명(이름)</b>이어야 합니다.<br>
-                            • 두 번째 줄부터는 <b>숫자형 데이터</b>가 들어가야 합니다.
-                        </p>
-                        <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">
-                            공부시간, 시험성적<br>
-                            12, 85<br>
-                            15, 92<br>
-                            ...
+            <!-- ================= VIEW 1: 데이터 입력 ================= -->
+            <div id="view-step1" class="fade-in">
+                <div class="card glass">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3><i class="fa-solid fa-file-csv"></i> Step 1. 데이터 파일 올리기</h3>
+                        <!-- 인코딩 선택 -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="text-muted" style="font-size: 0.75rem;">한글이 깨질 경우 변경:</span>
+                            <select id="encoding-select" class="form-control" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.75rem;" onchange="reparseCurrentFile()">
+                                <option value="EUC-KR">EUC-KR (국내 엑셀 기본)</option>
+                                <option value="UTF-8">UTF-8</option>
+                            </select>
                         </div>
                     </div>
+                    
+                    <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1.5rem; padding: 1rem;">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <div>
+                            <strong>데이터 파일 구조 안내</strong>
+                            <p class="mt-2" style="font-size: 0.85rem; color: var(--text-main);">
+                                • 첫 번째 줄(행)은 <b>변수명(이름)</b>이어야 합니다.<br>
+                                • 두 번째 줄부터는 <b>숫자형 데이터</b>가 들어가야 합니다.
+                            </p>
+                            <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">
+                                공부시간, 시험성적<br>
+                                12, 85<br>
+                                15, 92<br>
+                                ...
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <h4>여기로 파일을 드래그하거나 클릭하세요</h4>
+                        <p class="text-muted mt-2">CSV 형식 지원</p>
+                        <input type="file" id="fileInput" accept=".csv" class="hidden">
+                    </div>
                 </div>
-                
-                <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <h4>여기로 파일을 드래그하거나 클릭하세요</h4>
-                    <p class="text-muted mt-2">CSV 형식 지원</p>
-                    <input type="file" id="fileInput" accept=".csv" class="hidden">
+
+                <!-- 데이터 미리보기 -->
+                <div class="card glass hidden fade-in" id="preview-card">
+                    <div class="flex justify-between items-center">
+                        <h3>👀 데이터 미리보기</h3>
+                        <button class="btn btn-primary" onclick="proceedToStep2()">
+                            다음 단계: 가설 검증하기 <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="table-container mt-4" id="table-container"></div>
                 </div>
             </div>
 
-            <!-- 데이터 미리보기 -->
-            <div class="card glass hidden fade-in" id="preview-card">
-                <h3>👀 데이터 미리보기</h3>
-                <div class="table-container mt-4" id="table-container"></div>
-            </div>
+            <!-- ================= VIEW 2: 가설 검증 ================= -->
+            <div id="view-step2" class="hidden fade-in">
+                <!-- Step 2: 변수 및 추세선 모델 선택 -->
+                <div class="card glass" id="step2-card">
+                    <h3><i class="fa-solid fa-bullseye"></i> Step 2. 분석 설정</h3>
+                    
+                    <div id="col-error" class="alert alert-warning hidden">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div>
+                            <strong>숫자형 데이터 부족</strong>
+                            <p class="text-muted">상관관계를 분석하려면 숫자로 된 열이 최소 2개 이상 필요합니다. 데이터 입력을 다시 확인해주세요.</p>
+                        </div>
+                    </div>
 
-            <!-- Step 2: 변수 선택 -->
-            <div class="card glass hidden fade-in" id="step2-card">
-                <h3><i class="fa-solid fa-bullseye"></i> Step 2. 분석할 변수 매핑</h3>
-                <div id="col-error" class="alert alert-warning hidden">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <div>
-                        <strong>숫자형 데이터 부족</strong>
-                        <p class="text-muted">상관관계를 분석하려면 숫자로 된 열이 최소 2개 이상 필요합니다. 다른 파일을 올려주세요.</p>
+                    <div id="col-selectors" class="grid-2 mt-4">
+                        <div class="form-group">
+                            <label for="xCol">X축 (독립변수: 원인이 되는 값)</label>
+                            <select id="xCol" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="yCol">Y축 (종속변수: 결과가 되는 값)</label>
+                            <select id="yCol" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <label for="trendModel">분석할 추세선 함수 모델 선택</label>
+                        <select id="trendModel" class="form-control">
+                            <option value="linear">1. 선형 함수 (Linear: y = ax + b)</option>
+                            <option value="exponential">2. 지수 함수 (Exponential: y = a · e^bx)</option>
+                            <option value="logarithmic">3. 로그 함수 (Logarithmic: y = a + b · ln(x))</option>
+                            <option value="polynomial">4. 2차 다항 함수 (Polynomial: y = ax² + bx + c)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between items-center" id="analyze-action">
+                        <span class="text-muted">설정을 완료했다면 분석을 시작하세요.</span>
+                        <button class="btn btn-primary" onclick="runAnalysis()">
+                            <i class="fa-solid fa-rocket"></i> 데이터 분석 시작!
+                        </button>
                     </div>
                 </div>
 
-                <div id="col-selectors" class="grid-2 mt-4 hidden">
-                    <div class="form-group">
-                        <label for="xCol">X축 (독립변수: 원인이 되는 값)</label>
-                        <select id="xCol" class="form-control"></select>
+                <!-- Step 3: 분석 결과 -->
+                <div class="card glass hidden fade-in" id="result-card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3><i class="fa-solid fa-square-poll-vertical"></i> 분석 결과 레포트</h3>
+                        <button class="btn btn-secondary" onclick="downloadReport()">
+                            <i class="fa-solid fa-download"></i> 요약 다운로드
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label for="yCol">Y축 (종속변수: 결과가 되는 값)</label>
-                        <select id="yCol" class="form-control"></select>
+
+                    <!-- 통계 수치 표시 영역 -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
+                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
+                            <div class="stat-value mt-2" id="res-eq" style="font-size: 1.4rem;">y = 0</div>
+                        </div>
+                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
+                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-bullseye"></i> 설명력 (결정계수 R²)</div>
+                            <div class="stat-value mt-2" id="res-r2">0.0000</div>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;">1에 가까울수록 함수가 데이터를 정확히 설명함</p>
+                        </div>
+                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
+                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-percent"></i> 유의확률 (p-value, 선형 기준)</div>
+                            <div class="stat-value mt-2" id="res-p">0.0000</div>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;">(참고용) 0.05 미만일 경우 뚜렷한 선형적 관계가 입증됨</p>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="mt-6 flex justify-between items-center hidden" id="analyze-action">
-                    <span class="text-muted">변수를 모두 선택했다면 분석을 시작하세요.</span>
-                    <button class="btn btn-primary" onclick="runAnalysis()">
-                        <i class="fa-solid fa-rocket"></i> 데이터 분석 시작!
-                    </button>
-                </div>
-            </div>
 
-            <!-- Step 3: 분석 결과 -->
-            <div class="card glass hidden fade-in" id="result-card">
-                <div class="flex justify-between items-center mb-6">
-                    <h3><i class="fa-solid fa-square-poll-vertical"></i> 분석 결과 레포트</h3>
-                    <button class="btn btn-secondary" onclick="downloadReport()">
-                        <i class="fa-solid fa-download"></i> 요약 다운로드
-                    </button>
+                    <div id="interpretation-box"></div>
+
+                    <!-- 차트 -->
+                    <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
+                    <p class="text-muted mb-4">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
+                    <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
                 </div>
-
-                <div class="grid-2 mb-6">
-                    <div class="card glass" style="margin-bottom:0; background:var(--bg-app)">
-                        <div class="text-muted">피어슨 상관계수 (r)</div>
-                        <div class="stat-value mt-2" id="res-r">0.0000</div>
-                        <p class="text-muted mt-2" style="font-size:0.75rem;">1에 가까울수록 강한 양의 상관, -1에 가까울수록 강한 음의 상관</p>
-                    </div>
-                    <div class="card glass" style="margin-bottom:0; background:var(--bg-app)">
-                        <div class="text-muted">유의확률 (p-value)</div>
-                        <div class="stat-value mt-2" id="res-p">0.0000</div>
-                        <p class="text-muted mt-2" style="font-size:0.75rem;">0.05 미만일 경우 통계적으로 매우 유의미함을 뜻함</p>
-                    </div>
-                </div>
-
-                <div id="interpretation-box"></div>
-
-                <!-- 차트 -->
-                <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
-                <p class="text-muted mb-4">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
-                <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
-                
             </div>
 
         </div>
@@ -462,6 +368,23 @@
 </div>
 
 <script>
+    // --- 화면 라우팅 (메뉴 전환) ---
+    function switchView(viewName) {
+        document.getElementById('view-step1').classList.add('hidden');
+        document.getElementById('view-step2').classList.add('hidden');
+        document.getElementById('nav-step1').classList.remove('active');
+        document.getElementById('nav-step2').classList.remove('active');
+
+        document.getElementById('view-' + viewName).classList.remove('hidden');
+        document.getElementById('nav-' + viewName).classList.add('active');
+    }
+
+    function proceedToStep2() {
+        document.getElementById('nav-step2').style.pointerEvents = 'auto';
+        document.getElementById('nav-step2').style.opacity = '1';
+        switchView('step2');
+    }
+
     // --- 테마 토글 ---
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
@@ -474,46 +397,62 @@
             icon.classList.replace('fa-moon', 'fa-sun');
         }
         
-        // 차트가 렌더링되어 있으면 테마에 맞게 다시 그림
         if (window.currentChartData) {
-            renderChart(window.currentChartData.xData, window.currentChartData.yData, window.currentChartData.xLabel, window.currentChartData.yLabel, window.currentChartData.slope, window.currentChartData.intercept);
+            renderChart(
+                window.currentChartData.xData, 
+                window.currentChartData.yData, 
+                window.currentChartData.curveX, 
+                window.currentChartData.curveY, 
+                window.currentChartData.xLabel, 
+                window.currentChartData.yLabel, 
+                window.currentChartData.equation
+            );
         }
     }
 
     // --- 글로벌 변수 ---
     let globalData = [];
     let numericColumns = [];
+    let currentFile = null;
 
-    // --- 파일 업로드 로직 ---
+    // --- 파일 업로드 및 인코딩 ---
     const fileInput = document.getElementById('fileInput');
     const dropzone = document.getElementById('dropzone');
 
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.transform = "scale(1.02)"; });
     dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.style.transform = "scale(1)"; });
     dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.style.transform = "scale(1)";
+        e.preventDefault(); dropzone.style.transform = "scale(1)";
         if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            handleFile(fileInput.files[0]);
+            currentFile = e.dataTransfer.files[0];
+            handleFile(currentFile);
         }
     });
     fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) handleFile(e.target.files[0]);
+        if (e.target.files.length) {
+            currentFile = e.target.files[0];
+            handleFile(currentFile);
+        }
     });
 
+    function reparseCurrentFile() {
+        if (currentFile) handleFile(currentFile);
+    }
+
     function handleFile(file) {
+        const encoding = document.getElementById('encoding-select').value;
         Papa.parse(file, {
             header: true,
             dynamicTyping: true,
             skipEmptyLines: true,
+            encoding: encoding,
             complete: function(results) {
                 globalData = results.data;
                 renderTable(globalData);
                 processColumns(globalData);
             },
             error: function(err) {
-                alert("파일을 읽는 중 오류가 발생했습니다.");
+                alert("파일을 읽는 중 오류가 발생했습니다. 인코딩 설정을 확인해 보세요.");
             }
         });
     }
@@ -545,24 +484,22 @@
         if(data.length === 0) return;
         const headers = Object.keys(data[0]);
         numericColumns = headers.filter(h => {
-            // 첫 5행을 보고 숫자형인지 유추
             for(let i=0; i<Math.min(5, data.length); i++) {
                 if (typeof data[i][h] === 'number') return true;
             }
             return false;
         });
 
-        const step2 = document.getElementById('step2-card');
         const colError = document.getElementById('col-error');
         const colSelectors = document.getElementById('col-selectors');
         const analyzeAction = document.getElementById('analyze-action');
-        
-        step2.classList.remove('hidden');
 
         if(numericColumns.length < 2) {
             colError.classList.remove('hidden');
             colSelectors.classList.add('hidden');
             analyzeAction.classList.add('hidden');
+            document.getElementById('nav-step2').style.pointerEvents = 'none';
+            document.getElementById('nav-step2').style.opacity = '0.5';
         } else {
             colError.classList.add('hidden');
             colSelectors.classList.remove('hidden');
@@ -584,63 +521,81 @@
         });
     }
 
-    // Y축 셀렉트 박스에서 X축과 중복 방지 (기존 Streamlit 논리)
     document.getElementById('xCol').addEventListener('change', (e) => {
         const xVal = e.target.value;
         const yVal = document.getElementById('yCol').value;
         populateSelect('yCol', numericColumns.filter(c => c !== xVal), yVal === xVal ? numericColumns.filter(c => c !== xVal)[0] : yVal);
     });
 
-    // --- 통계 연산 및 결과 표시 ---
+    // --- 통계 분석 (Regression.js + jStat) ---
     function runAnalysis() {
         const xCol = document.getElementById('xCol').value;
         const yCol = document.getElementById('yCol').value;
+        const modelType = document.getElementById('trendModel').value;
 
-        // 결측치 제거
+        let points = [];
         let xData = [];
         let yData = [];
+
         globalData.forEach(row => {
             if(typeof row[xCol] === 'number' && typeof row[yCol] === 'number') {
+                if(modelType === 'logarithmic' && row[xCol] <= 0) return; // log(0) 방지
+                if(modelType === 'exponential' && row[yCol] <= 0) return; // e^x 는 0 이하 불가 (선형화 에러 방지)
+                points.push([row[xCol], row[yCol]]);
                 xData.push(row[xCol]);
                 yData.push(row[yCol]);
             }
         });
 
-        if(xData.length < 3) {
-            alert("분석을 위한 유효한 데이터가 부족합니다.");
+        if(points.length < 3) {
+            alert("선택한 수학 모델로 분석하기 위한 유효한 양수 데이터가 부족합니다.");
             return;
         }
 
-        // jStat 연산
+        // Regression.js 추세선 및 결정계수(R2) 계산
+        let regResult;
+        if(modelType === 'linear') regResult = regression.linear(points, { precision: 4 });
+        else if(modelType === 'exponential') regResult = regression.exponential(points, { precision: 4 });
+        else if(modelType === 'logarithmic') regResult = regression.logarithmic(points, { precision: 4 });
+        else if(modelType === 'polynomial') regResult = regression.polynomial(points, { order: 2, precision: 4 });
+
+        const equationText = regResult.string.replace('y = ', '');
+        const r2 = regResult.r2;
+
+        // jStat: P-value (항상 선형 피어슨 기준으로 참고용으로만 제공)
         const corr = jStat.corrcoeff(xData, yData);
         const n = xData.length;
-        
-        // T-test for correlation: t = r * sqrt(n-2) / sqrt(1-r^2)
         const t_stat = corr * Math.sqrt(n - 2) / Math.sqrt(1 - corr * corr);
-        // p-value from student's t distribution (2-tailed)
-        const p_value = jStat.studentt.pdf(t_stat, n - 2) * 2; // approximation or exactly cdf based
-        const true_p_value = 2 * (1 - jStat.studentt.cdf(Math.abs(t_stat), n - 2));
+        const p_value = 2 * (1 - jStat.studentt.cdf(Math.abs(t_stat), n - 2));
 
-        // 단순 선형 회귀 (추세선 용)
-        // slope = r * (sy / sx)
-        const sx = jStat.stdev(xData, true);
-        const sy = jStat.stdev(yData, true);
-        const slope = corr * (sy / sx);
-        const intercept = jStat.mean(yData) - slope * jStat.mean(xData);
+        // 곡선 그래프 그리기용 촘촘한 좌표 생성
+        const minX = Math.min(...xData);
+        const maxX = Math.max(...xData);
+        let curveX = [];
+        let curveY = [];
+        const steps = 100;
+        for(let i=0; i<=steps; i++) {
+            let x = minX + (maxX - minX) * (i / steps);
+            if(x === 0 && modelType === 'logarithmic') x = 0.0001;
+            let pred = regResult.predict(x);
+            curveX.push(pred[0]);
+            curveY.push(pred[1]);
+        }
 
         // UI 업데이트
         document.getElementById('result-card').classList.remove('hidden');
-        document.getElementById('res-r').textContent = corr.toFixed(4);
-        document.getElementById('res-p').textContent = true_p_value.toFixed(4);
+        document.getElementById('res-eq').textContent = equationText;
+        document.getElementById('res-r2').textContent = r2.toFixed(4);
+        document.getElementById('res-p').textContent = p_value.toFixed(4);
 
         const interpBox = document.getElementById('interpretation-box');
-        if(true_p_value < 0.05) {
+        if(r2 >= 0.5) {
             interpBox.innerHTML = `
                 <div class="alert alert-success">
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
-                        <strong>가설 검증 성공!</strong>
-                        <p>p-value가 0.05보다 작습니다! 학생의 가설(두 변수 간에 밀접한 관계가 있다)이 통계적으로 유의미하다는 뜻입니다. 🎉</p>
+                        <strong>강력한 설명력!</strong>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 매우 높습니다. 선택하신 <b>[${modelType}] 함수식</b>이 두 변수 간의 관계를 훌륭하게 설명하고 있습니다. 탐구 보고서에 이 함수식을 수학적 근거로 제시해 보세요!</p>
                     </div>
                 </div>`;
         } else {
@@ -648,56 +603,44 @@
                 <div class="alert alert-info">
                     <i class="fa-solid fa-circle-info"></i>
                     <div>
-                        <strong>관계성 입증 부족</strong>
-                        <p>p-value가 0.05보다 크네요. 아쉽지만 현재 데이터로는 두 변수 간의 뚜렷한 관계를 확신하기 어렵습니다. 데이터 양을 늘리거나 다른 변수를 찾아보는 건 어떨까요? 🤔</p>
+                        <strong>설명력 부족</strong>
+                        <p>결정계수(R²)가 다소 낮습니다. 데이터가 선택한 함수식을 완벽히 따르지 않거나 다른 변수의 개입이 큽니다. 추세선 모델을 다른 함수(다항, 로그 등)로 변경하여 더 잘 맞는 곡선을 찾아보세요!</p>
                     </div>
                 </div>`;
         }
 
-        // 차트 렌더링
-        window.currentChartData = {xData, yData, xLabel: xCol, yLabel: yCol, slope, intercept};
-        renderChart(xData, yData, xCol, yCol, slope, intercept);
+        window.currentChartData = { xData, yData, curveX, curveY, xLabel: xCol, yLabel: yCol, equation: equationText };
+        renderChart(xData, yData, curveX, curveY, xCol, yCol, equationText);
     }
 
-    function renderChart(xData, yData, xLabel, yLabel, slope, intercept) {
+    // --- 그래프 렌더링 ---
+    function renderChart(xData, yData, curveX, curveY, xLabel, yLabel, equationStr) {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#e2e8f0' : '#1a202c';
         const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-        const paperColor = 'rgba(0,0,0,0)'; // transparent
+        const paperColor = 'rgba(0,0,0,0)';
 
         const scatter = {
-            x: xData,
-            y: yData,
-            mode: 'markers',
-            type: 'scatter',
-            name: '데이터',
+            x: xData, y: yData, mode: 'markers', type: 'scatter', name: '실제 데이터',
             marker: { color: 'hsl(255, 65%, 60%)', size: 8, opacity: 0.7 }
         };
 
-        const minX = Math.min(...xData);
-        const maxX = Math.max(...xData);
         const trendline = {
-            x: [minX, maxX],
-            y: [slope * minX + intercept, slope * maxX + intercept],
-            mode: 'lines',
-            type: 'scatter',
-            name: '추세선',
-            line: { color: 'hsl(5, 75%, 55%)', dash: 'dash', width: 2 }
+            x: curveX, y: curveY, mode: 'lines', type: 'scatter', name: '예측 곡선',
+            line: { color: 'hsl(5, 75%, 55%)', dash: 'dash', width: 3 }
         };
 
         const layout = {
-            autosize: true,
-            plot_bgcolor: paperColor,
-            paper_bgcolor: paperColor,
+            autosize: true, plot_bgcolor: paperColor, paper_bgcolor: paperColor,
             font: { color: textColor, family: 'Inter' },
+            title: { text: `y = ${equationStr}`, font: { family: 'Outfit', size: 16 } },
             xaxis: { title: xLabel, gridcolor: gridColor, zerolinecolor: gridColor },
             yaxis: { title: yLabel, gridcolor: gridColor, zerolinecolor: gridColor },
-            margin: { l: 50, r: 20, t: 20, b: 50 }
+            margin: { l: 50, r: 20, t: 40, b: 50 },
+            legend: { orientation: "h", y: -0.2 }
         };
 
-        const config = { responsive: true, displayModeBar: true, displaylogo: false };
-
-        Plotly.newPlot('chart-container', [scatter, trendline], layout, config);
+        Plotly.newPlot('chart-container', [scatter, trendline], layout, { responsive: true, displayModeBar: true, displaylogo: false });
     }
 
     // --- 파일 다운로드 ---
@@ -705,28 +648,23 @@
         if(!window.currentChartData) return;
         const xCol = window.currentChartData.xLabel;
         const yCol = window.currentChartData.yLabel;
-        const rVal = document.getElementById('res-r').textContent;
-        const pVal = document.getElementById('res-p').textContent;
-        const isSig = parseFloat(pVal) < 0.05;
+        const eqVal = document.getElementById('res-eq').textContent;
+        const r2Val = document.getElementById('res-r2').textContent;
+        const modelType = document.getElementById('trendModel').options[document.getElementById('trendModel').selectedIndex].text;
 
-        let result_text = `분석 결과 요약\n\n`;
-        result_text += `- X축: ${xCol}\n`;
-        result_text += `- Y축: ${yCol}\n`;
-        result_text += `- 상관계수(r): ${rVal}\n`;
-        result_text += `- p-value: ${pVal}\n\n`;
-        result_text += `결론: ${isSig ? "두 변수 간에 유의미한 관계가 있습니다." : "두 변수 간에 유의미한 관계를 찾기 어렵습니다."}`;
+        let result_text = `==== 동덕여고 가설 검증 결과 레포트 ====\n\n`;
+        result_text += `[분석 변수]\n- 독립변수(X): ${xCol}\n- 종속변수(Y): ${yCol}\n\n`;
+        result_text += `[분석 모델]\n- ${modelType}\n\n`;
+        result_text += `[도출된 수식]\n- y = ${eqVal}\n\n`;
+        result_text += `[통계 검증]\n- 설명력 (R²): ${r2Val}\n`;
+        result_text += `  (1에 가까울수록 함수가 데이터를 잘 설명함)\n`;
 
         const blob = new Blob([result_text], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = "analysis_result.txt";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        a.href = url; a.download = "가설검증_결과_레포트.txt";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
-
 </script>
 </body>
 </html>
