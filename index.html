@@ -636,22 +636,31 @@
         document.getElementById('res-p').textContent = p_value.toFixed(4);
 
         const interpBox = document.getElementById('interpretation-box');
-        if(r2 >= 0.5) {
+        if (r2 >= 0.7) {
             interpBox.innerHTML = `
                 <div class="alert alert-success">
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
                         <strong>강력한 설명력!</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 매우 높습니다. 선택하신 <b>[${modelType}] 함수식</b>이 두 변수 간의 관계를 훌륭하게 설명하고 있습니다. 탐구 보고서에 이 함수식을 수학적 근거로 제시해 보세요!</p>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 매우 높습니다. 선택하신 <b>[${modelType}] 함수식</b>이 두 변수 간의 관계를 훌륭하게 설명하고 있습니다. 탐구 보고서에 이 함수식을 핵심 수학적 근거로 제시해 보세요!</p>
+                    </div>
+                </div>`;
+        } else if (r2 >= 0.4) {
+            interpBox.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fa-solid fa-chart-bar"></i>
+                    <div>
+                        <strong>유의미한 설명력</strong>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 중간 정도입니다. 선택하신 함수식이 어느 정도 의미 있는 패턴을 보여주지만, 예외적인 데이터(오차)도 제법 존재합니다. 다른 추세선 모델을 적용했을 때 더 높아지는지 비교해 보세요.</p>
                     </div>
                 </div>`;
         } else {
             interpBox.innerHTML = `
-                <div class="alert alert-info">
-                    <i class="fa-solid fa-circle-info"></i>
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                     <div>
                         <strong>설명력 부족</strong>
-                        <p>결정계수(R²)가 다소 낮습니다. 데이터가 선택한 함수식을 완벽히 따르지 않거나 다른 변수의 개입이 큽니다. 추세선 모델을 다른 함수(다항, 로그 등)로 변경하여 더 잘 맞는 곡선을 찾아보세요!</p>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 많이 낮습니다. 데이터가 선택한 함수식을 거의 따르지 않거나 다른 변수의 영향이 큽니다. 추세선 모델을 다른 함수(다항, 로그 등)로 변경해 보세요!</p>
                     </div>
                 </div>`;
         }
