@@ -186,6 +186,12 @@
         
         .stat-value { font-family: var(--font-title); font-size: 2.2rem; font-weight: 800; color: var(--primary); }
 
+        /* 체크박스 커스텀 디자인 */
+        .checkbox-wrapper { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: var(--transition-smooth); }
+        .checkbox-wrapper:hover { background-color: hsla(255, 65%, 60%, 0.05); }
+        .checkbox-wrapper input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--primary); cursor: pointer; }
+        .checkbox-wrapper label { cursor: pointer; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0; font-weight: 500; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
@@ -317,6 +323,14 @@
                             <option value="logarithmic">3. 로그 함수 (Logarithmic: y = a + b · ln(x))</option>
                             <option value="polynomial">4. 2차 다항 함수 (Polynomial: y = ax² + bx + c)</option>
                         </select>
+                        
+                        <!-- X축 영점 조절 체크박스 -->
+                        <div class="checkbox-wrapper" onclick="document.getElementById('zeroPointAdjust').click()">
+                            <input type="checkbox" id="zeroPointAdjust" onclick="event.stopPropagation()">
+                            <label for="zeroPointAdjust">
+                                💡 X축 영점 조절 켜기 (연도 등 숫자가 큰 데이터일 때 오류를 방지합니다)
+                            </label>
+                        </div>
                     </div>
                     
                     <div class="mt-6 flex justify-between items-center" id="analyze-action">
@@ -527,28 +541,52 @@
         populateSelect('yCol', numericColumns.filter(c => c !== xVal), yVal === xVal ? numericColumns.filter(c => c !== xVal)[0] : yVal);
     });
 
-    // --- 통계 분석 (Regression.js + jStat) ---
+    // --- 통계 분석 (Regression.js + 평행이동 + jStat) ---
     function runAnalysis() {
         const xCol = document.getElementById('xCol').value;
         const yCol = document.getElementById('yCol').value;
         const modelType = document.getElementById('trendModel').value;
+        const useZeroAdjust = document.getElementById('zeroPointAdjust').checked;
+
+        // 1차 필터링: 유효한 숫자 데이터만 추출
+        let validRows = [];
+        globalData.forEach(row => {
+            if(typeof row[xCol] === 'number' && typeof row[yCol] === 'number') {
+                validRows.push({ x: row[xCol], y: row[yCol] });
+            }
+        });
+
+        if(validRows.length < 3) {
+            alert("데이터가 부족합니다.");
+            return;
+        }
+
+        // 평행이동 처리 (영점 조절)
+        const minXOriginal = Math.min(...validRows.map(r => r.x));
+        let shiftX = 0;
+        if (useZeroAdjust) {
+            // 로그함수는 x가 무조건 양수여야 하므로 시작점을 1로 맞춥니다.
+            shiftX = modelType === 'logarithmic' ? minXOriginal - 1 : minXOriginal;
+        }
 
         let points = [];
         let xData = [];
         let yData = [];
 
-        globalData.forEach(row => {
-            if(typeof row[xCol] === 'number' && typeof row[yCol] === 'number') {
-                if(modelType === 'logarithmic' && row[xCol] <= 0) return; // log(0) 방지
-                if(modelType === 'exponential' && row[yCol] <= 0) return; // e^x 는 0 이하 불가 (선형화 에러 방지)
-                points.push([row[xCol], row[yCol]]);
-                xData.push(row[xCol]);
-                yData.push(row[yCol]);
-            }
+        validRows.forEach(row => {
+            let adjX = row.x - shiftX;
+            let y = row.y;
+
+            if(modelType === 'logarithmic' && adjX <= 0) return; // log(0) 에러 방지
+            if(modelType === 'exponential' && y <= 0) return; // 지수함수는 y가 0 이하일 수 없음
+
+            points.push([adjX, y]);
+            xData.push(row.x);
+            yData.push(y);
         });
 
         if(points.length < 3) {
-            alert("선택한 수학 모델로 분석하기 위한 유효한 양수 데이터가 부족합니다.");
+            alert("선택한 수학 모델로 분석하기 위한 유효한 데이터가 부족합니다. (음수/0 값 제외됨)");
             return;
         }
 
@@ -559,7 +597,14 @@
         else if(modelType === 'logarithmic') regResult = regression.logarithmic(points, { precision: 4 });
         else if(modelType === 'polynomial') regResult = regression.polynomial(points, { order: 2, precision: 4 });
 
-        const equationText = regResult.string.replace('y = ', '');
+        let equationText = regResult.string.replace('y = ', '');
+        
+        // 화면에 출력할 수식 보정 (x 대신 평행이동한 (x - shift) 형태 명시)
+        if (useZeroAdjust && shiftX !== 0) {
+            let shiftStr = shiftX > 0 ? `- ${shiftX}` : `+ ${Math.abs(shiftX)}`;
+            equationText = equationText.replace(/x/g, `(x ${shiftStr})`);
+        }
+
         const r2 = regResult.r2;
 
         // jStat: P-value (항상 선형 피어슨 기준으로 참고용으로만 제공)
@@ -568,17 +613,19 @@
         const t_stat = corr * Math.sqrt(n - 2) / Math.sqrt(1 - corr * corr);
         const p_value = 2 * (1 - jStat.studentt.cdf(Math.abs(t_stat), n - 2));
 
-        // 곡선 그래프 그리기용 촘촘한 좌표 생성
+        // 곡선 그래프 그리기용 촘촘한 좌표 생성 (원래 X 좌표대로 그려지도록 복원)
         const minX = Math.min(...xData);
         const maxX = Math.max(...xData);
         let curveX = [];
         let curveY = [];
         const steps = 100;
         for(let i=0; i<=steps; i++) {
-            let x = minX + (maxX - minX) * (i / steps);
-            if(x === 0 && modelType === 'logarithmic') x = 0.0001;
-            let pred = regResult.predict(x);
-            curveX.push(pred[0]);
+            let originalX = minX + (maxX - minX) * (i / steps);
+            let adjX = originalX - shiftX;
+            if(adjX <= 0 && modelType === 'logarithmic') adjX = 0.0001; // log(0) 방지
+            
+            let pred = regResult.predict(adjX);
+            curveX.push(originalX); // 화면에는 원래 X축 좌표대로 그립니다.
             curveY.push(pred[1]);
         }
 
