@@ -255,17 +255,20 @@
                     
                     <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1.5rem; padding: 1rem;">
                         <i class="fa-solid fa-circle-info"></i>
-                        <div>
+                        <div style="width: 100%;">
                             <strong>데이터 파일 구조 안내</strong>
                             <p class="mt-2" style="font-size: 0.85rem; color: var(--text-main);">
                                 • 첫 번째 줄(행)은 <b>변수명(이름)</b>이어야 합니다.<br>
                                 • 두 번째 줄부터는 <b>숫자형 데이터</b>가 들어가야 합니다.
                             </p>
-                            <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">
-                                공부시간, 시험성적<br>
-                                12, 85<br>
-                                15, 92<br>
+                            <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted); position: relative;">
+                                수면시간,학업성적<br>
+                                7.5,85<br>
+                                6,72<br>
                                 ...
+                                <button class="btn btn-secondary" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="downloadSampleCSV()">
+                                    <i class="fa-solid fa-download"></i> 예시 양식 다운로드
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -275,6 +278,23 @@
                         <h4>여기로 파일을 드래그하거나 클릭하세요</h4>
                         <p class="text-muted mt-2">CSV 형식 지원</p>
                         <input type="file" id="fileInput" accept=".csv" class="hidden">
+                    </div>
+                </div>
+
+                <!-- 탐구용 데이터 추천 사이트 -->
+                <div class="card glass fade-in" style="padding: 1.2rem; display: flex; gap: 1rem; align-items: center;">
+                    <div style="font-size: 2rem; color: var(--primary);"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                    <div>
+                        <h4 style="font-size: 0.95rem; margin-bottom: 0.2rem;">탐구용 데이터를 어디서 찾을지 막막하다면?</h4>
+                        <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 0.5rem;">신뢰할 수 있는 국가 및 공공 기관의 데이터를 활용해 보세요.</p>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="https://kosis.kr/index/index.do" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none;">
+                                <i class="fa-solid fa-link"></i> KOSIS 국가통계포털
+                            </a>
+                            <a href="https://www.data.go.kr/" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none;">
+                                <i class="fa-solid fa-link"></i> 공공데이터포털
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -720,6 +740,20 @@
         const a = document.createElement('a');
         a.href = url; a.download = "가설검증_결과_레포트.txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    // --- 샘플 CSV 다운로드 ---
+    function downloadSampleCSV() {
+        const sampleData = "\uFEFF수면시간,학업성적\n7.5,85\n6,72\n5.5,65\n8,90\n4.5,50\n7,80\n6.5,78\n5,60\n8.5,92\n6,70\n7,82\n5.5,68\n6.5,75\n7.5,88\n5,62\n6,74\n8,86\n4,45\n7,81\n6.5,76\n9,95\n5.8,71\n6.8,80\n7.2,84\n5.2,61\n6.2,73\n8.2,89\n4.8,58\n7.8,87\n6.4,72\n";
+        const blob = new Blob([sampleData], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "sleep_vs_score_example.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 </script>
 </body>
