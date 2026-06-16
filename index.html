@@ -208,7 +208,7 @@
                 <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
                 <div class="brand-title">Data<br>Analyzer</div>
             </div>
-            <div style="font-size: 0.8rem; color: hsla(0,0%,100%,0.5); font-weight: 500; letter-spacing: -0.3px;">동덕여고 가설 검증 프로그램</div>
+            <div style="font-size: 0.8rem; color: hsla(0,0%,100%,0.5); font-weight: 500; letter-spacing: -0.3px;">동덕여고 데이터 기반 가설 탐구</div>
         </div>
 
         <ul class="nav-list">
@@ -231,7 +231,7 @@
     <main class="app-content">
         <header class="content-header">
             <div>
-                <h1>가설 검증 연구소 🔬</h1>
+                <h1>탐구 데이터 분석 도구 (Easy Data Analyzer) 🔬</h1>
                 <p class="text-muted mt-2">두 변수 간에 어떤 관계가 있는지 과학적으로 분석해 보세요.</p>
             </div>
         </header>
@@ -258,7 +258,7 @@
                         <div style="width: 100%;">
                             <strong>데이터 파일 구조 안내</strong>
                             <p class="mt-2" style="font-size: 0.85rem; color: var(--text-main);">
-                                • 첫 번째 줄(행)은 <b>변수명(이름)</b>이어야 합니다.<br>
+                                • 파일의 첫 번째 줄에는 분석할 변수의 이름(예: 수면시간, 성적)을 입력해주세요.<br>
                                 • 두 번째 줄부터는 <b>숫자형 데이터</b>가 들어가야 합니다.
                             </p>
                             <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted); position: relative;">
@@ -326,17 +326,17 @@
 
                     <div id="col-selectors" class="grid-2 mt-4">
                         <div class="form-group">
-                            <label for="xCol">X축 (독립변수: 원인이 되는 값)</label>
+                            <label for="xCol">독립변수 (원인): 무엇이 결과에 영향을 주나요?</label>
                             <select id="xCol" class="form-control"></select>
                         </div>
                         <div class="form-group">
-                            <label for="yCol">Y축 (종속변수: 결과가 되는 값)</label>
+                            <label for="yCol">종속변수 (결과): 어떤 변화를 관찰하고 싶나요?</label>
                             <select id="yCol" class="form-control"></select>
                         </div>
                     </div>
 
                     <div class="form-group mt-4">
-                        <label for="trendModel">분석할 추세선 함수 모델 선택</label>
+                        <label for="trendModel">데이터 관계 모델링 (함수 선택)</label>
                         <select id="trendModel" class="form-control">
                             <option value="linear">1. 선형 함수 (Linear: y = ax + b)</option>
                             <option value="exponential">2. 지수 함수 (Exponential: y = a · e^bx)</option>
@@ -382,7 +382,7 @@
                             <p class="text-muted mt-2" style="font-size:0.7rem;">1에 가까울수록 함수가 데이터를 정확히 설명함</p>
                         </div>
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
-                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-percent"></i> 유의확률 (p-value, 선형 기준)</div>
+                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-percent"></i> 통계적 유의성 (p-value, 선형 기준)</div>
                             <div class="stat-value mt-2" id="res-p">0.0000</div>
                             <p class="text-muted mt-2" style="font-size:0.7rem;">(참고용) 0.05 미만일 경우 뚜렷한 선형적 관계가 입증됨</p>
                         </div>
@@ -728,7 +728,7 @@
         const r2Val = document.getElementById('res-r2').textContent;
         const modelType = document.getElementById('trendModel').options[document.getElementById('trendModel').selectedIndex].text;
 
-        let result_text = `==== 동덕여고 가설 검증 결과 레포트 ====\n\n`;
+        let result_text = `==== 동덕여고 데이터 기반 가설 탐구 결과 레포트 ====\n\n`;
         result_text += `[분석 변수]\n- 독립변수(X): ${xCol}\n- 종속변수(Y): ${yCol}\n\n`;
         result_text += `[분석 모델]\n- ${modelType}\n\n`;
         result_text += `[도출된 수식]\n- y = ${eqVal}\n\n`;
