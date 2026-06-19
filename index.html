@@ -274,9 +274,9 @@
                     </div>
                     
                     <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <h4>여기로 파일을 드래그하거나 클릭하세요</h4>
-                        <p class="text-muted mt-2">CSV 형식 지원</p>
+                        <i class="fa-solid fa-cloud-arrow-up" id="dropzone-icon"></i>
+                        <h4 id="dropzone-title">여기로 파일을 드래그하거나 클릭하세요</h4>
+                        <p class="text-muted mt-2" id="dropzone-desc">CSV 형식 지원</p>
                         <input type="file" id="fileInput" accept=".csv" class="hidden">
                     </div>
                 </div>
@@ -474,7 +474,16 @@
     }
 
     function handleFile(file) {
+        if (!file) return;
         const encoding = document.getElementById('encoding-select').value;
+        
+        // 업로드된 파일명 표시 UI 업데이트
+        const icon = document.getElementById('dropzone-icon');
+        icon.className = 'fa-solid fa-file-circle-check';
+        icon.style.color = 'var(--success)';
+        document.getElementById('dropzone-title').innerHTML = `선택된 파일: <span style="color: var(--primary);">${file.name}</span>`;
+        document.getElementById('dropzone-desc').textContent = '다른 파일을 분석하려면 다시 클릭하거나 드래그하세요.';
+
         Papa.parse(file, {
             header: true,
             dynamicTyping: true,
