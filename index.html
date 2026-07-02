@@ -218,6 +218,9 @@
             <li class="nav-item" id="nav-step2" onclick="switchView('step2')" style="pointer-events: none; opacity: 0.5;">
                 <i class="fa-solid fa-flask"></i> 가설 검증
             </li>
+            <li class="nav-item" id="nav-step3" onclick="switchView('step3')" style="pointer-events: none; opacity: 0.5;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 데이터 예측
+            </li>
         </ul>
 
         <div class="sidebar-footer">
@@ -394,6 +397,39 @@
                     <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
                     <p class="text-muted mb-4">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
                     <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
+                    
+                    <div class="mt-6 flex justify-between items-center">
+                        <span class="text-muted">도출된 수학 모델을 바탕으로 데이터를 예측해볼 수 있습니다.</span>
+                        <button class="btn btn-primary" onclick="proceedToStep3()">
+                            다음 단계: 데이터 예측하기 <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 3: 데이터 예측 ================= -->
+            <div id="view-step3" class="hidden fade-in">
+                <div class="card glass">
+                    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Step 3. 데이터 예측하기</h3>
+                    <p class="text-muted mb-4">가설 검증(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
+                    
+                    <div class="form-group" style="max-width: 500px;">
+                        <label id="predict-input-label" for="predictX">예측하고 싶은 독립변수 값을 입력하세요:</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="predictX" class="form-control" placeholder="예: 10" step="any">
+                            <button class="btn btn-primary" style="flex-shrink: 0;" onclick="runPrediction()">
+                                <i class="fa-solid fa-calculator"></i> 예측하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="predict-result-box" class="hidden mt-6 alert alert-success" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
+                        <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-chart-line"></i> 예측 결과</div>
+                        <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-main);">
+                            입력한 <strong id="pred-x-name" style="color: var(--primary);">독립변수</strong> 값이 <strong id="pred-x-val">0</strong>일 때, <br>
+                            예측되는 <strong id="pred-y-name" style="color: var(--danger);">종속변수</strong> 값은 <strong id="pred-y-val" style="font-size: 1.8rem; color: var(--primary);">0</strong> 입니다.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -406,17 +442,30 @@
     function switchView(viewName) {
         document.getElementById('view-step1').classList.add('hidden');
         document.getElementById('view-step2').classList.add('hidden');
+        document.getElementById('view-step3').classList.add('hidden');
         document.getElementById('nav-step1').classList.remove('active');
         document.getElementById('nav-step2').classList.remove('active');
+        document.getElementById('nav-step3').classList.remove('active');
 
         document.getElementById('view-' + viewName).classList.remove('hidden');
         document.getElementById('nav-' + viewName).classList.add('active');
+        
+        // 예측 뷰로 넘어갈 때 라벨 업데이트
+        if(viewName === 'step3' && window.currentChartData) {
+            document.getElementById('predict-input-label').textContent = `예측하고 싶은 [${window.currentChartData.xLabel}] 값을 입력하세요:`;
+        }
     }
 
     function proceedToStep2() {
         document.getElementById('nav-step2').style.pointerEvents = 'auto';
         document.getElementById('nav-step2').style.opacity = '1';
         switchView('step2');
+    }
+
+    function proceedToStep3() {
+        document.getElementById('nav-step3').style.pointerEvents = 'auto';
+        document.getElementById('nav-step3').style.opacity = '1';
+        switchView('step3');
     }
 
     // --- 테마 토글 ---
@@ -694,7 +743,14 @@
                 </div>`;
         }
 
-        window.currentChartData = { xData, yData, curveX, curveY, xLabel: xCol, yLabel: yCol, equation: equationText };
+        window.currentChartData = { 
+            xData, yData, curveX, curveY, 
+            xLabel: xCol, yLabel: yCol, 
+            equation: equationText,
+            regResult: regResult,
+            shiftX: shiftX,
+            modelType: modelType
+        };
         renderChart(xData, yData, curveX, curveY, xCol, yCol, equationText);
     }
 
@@ -726,6 +782,42 @@
         };
 
         Plotly.newPlot('chart-container', [scatter, trendline], layout, { responsive: true, displayModeBar: true, displaylogo: false });
+    }
+
+    // --- 예측 계산 (Step 3) ---
+    function runPrediction() {
+        const inputEl = document.getElementById('predictX');
+        if(!inputEl.value) {
+            alert("값을 입력해 주세요.");
+            return;
+        }
+
+        const inputX = parseFloat(inputEl.value);
+        if(!window.currentChartData || !window.currentChartData.regResult) {
+            alert("먼저 가설 검증 단계(Step 2)에서 분석을 완료해 주세요.");
+            return;
+        }
+
+        const { regResult, shiftX, modelType, xLabel, yLabel } = window.currentChartData;
+        
+        let adjX = inputX - shiftX;
+        
+        if (modelType === 'logarithmic' && adjX <= 0) {
+            alert(`로그 함수 모델에서는 입력값에서 평행이동 값을 뺀 결과가 0보다 커야 합니다. (입력한 X: ${inputX}, 영점조정 후 X: ${adjX})`);
+            return;
+        }
+
+        // 예측 수행
+        const pred = regResult.predict(adjX);
+        const predictedY = pred[1];
+
+        // UI 표시
+        const resultBox = document.getElementById('predict-result-box');
+        resultBox.classList.remove('hidden');
+        document.getElementById('pred-x-name').textContent = xLabel;
+        document.getElementById('pred-x-val').textContent = inputX;
+        document.getElementById('pred-y-name').textContent = yLabel;
+        document.getElementById('pred-y-val').textContent = predictedY.toFixed(2); // 소수점 2자리까지만 표시
     }
 
     // --- 파일 다운로드 ---
