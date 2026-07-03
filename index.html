@@ -620,6 +620,152 @@
         populateSelect('yCol', numericColumns.filter(c => c !== xVal), yVal === xVal ? numericColumns.filter(c => c !== xVal)[0] : yVal);
     });
 
+    // --- 일반화된 지수 함수 찾기 y = a * e^(bx) + c ---
+    function findGeneralizedExponential(points) {
+        const yVals = points.map(p => p[1]);
+        const minY = Math.min(...yVals);
+        const maxY = Math.max(...yVals);
+        const range = Math.max(maxY - minY, 0.001);
+        
+        let bestSSR = Infinity;
+        let bestModel = null;
+
+        function evaluate(c, sign) {
+            let transformed = [];
+            for(let i=0; i<points.length; i++) {
+                let y = points[i][1] - c;
+                if(sign > 0 && y <= 0) return;
+                if(sign < 0 && y >= 0) return;
+                transformed.push([points[i][0], sign > 0 ? y : -y]);
+            }
+            
+            let reg = regression.exponential(transformed, { precision: 10 });
+            if(isNaN(reg.equation[0]) || isNaN(reg.equation[1])) return;
+            
+            let a = sign > 0 ? reg.equation[0] : -reg.equation[0];
+            let b = reg.equation[1];
+            
+            let ssr = 0;
+            for(let i=0; i<points.length; i++) {
+                let pred = a * Math.exp(b * points[i][0]) + c;
+                ssr += Math.pow(points[i][1] - pred, 2);
+            }
+            
+            if (ssr < bestSSR) {
+                bestSSR = ssr;
+                bestModel = { a, b, c };
+            }
+        }
+
+        const steps = 1000;
+        for(let i = 0; i <= steps; i++) {
+            let c = minY - 0.0001 - (range * 2 * i / steps);
+            evaluate(c, 1);
+        }
+        for(let i = 0; i <= steps; i++) {
+            let c = maxY + 0.0001 + (range * 2 * i / steps);
+            evaluate(c, -1);
+        }
+        evaluate(0, 1);
+        evaluate(0, -1);
+
+        if (!bestModel) return null;
+        
+        let sst = 0;
+        const meanY = yVals.reduce((sum, y) => sum + y, 0) / yVals.length;
+        for(let i=0; i<yVals.length; i++) {
+            sst += Math.pow(yVals[i] - meanY, 2);
+        }
+        
+        let r2 = sst === 0 ? 1 : 1 - (bestSSR / sst);
+        
+        let aStr = bestModel.a.toPrecision(4);
+        let bStr = bestModel.b.toPrecision(4);
+        let cStr = Math.abs(bestModel.c).toPrecision(4);
+        let eqStr = `${aStr} e^(${bStr}x) ${bestModel.c >= 0 ? '+' : '-'} ${cStr}`;
+        if(Math.abs(bestModel.c) < 1e-10) eqStr = `${aStr} e^(${bStr}x)`;
+
+        return {
+            equation: [bestModel.a, bestModel.b, bestModel.c],
+            string: eqStr,
+            r2: r2,
+            predict: function(x) {
+                return [x, bestModel.a * Math.exp(bestModel.b * x) + bestModel.c];
+            }
+        };
+    }
+
+    // --- 일반화된 로그 함수 찾기 y = a + b * ln(x - c) ---
+    function findGeneralizedLogarithmic(points) {
+        const xVals = points.map(p => p[0]);
+        const yVals = points.map(p => p[1]);
+        const minX = Math.min(...xVals);
+        const rangeX = Math.max(Math.max(...xVals) - minX, 0.001);
+        
+        let bestSSR = Infinity;
+        let bestModel = null;
+
+        function evaluate(c) {
+            let transformed = [];
+            for(let i=0; i<points.length; i++) {
+                let x = points[i][0] - c;
+                if(x <= 0) return;
+                transformed.push([x, points[i][1]]);
+            }
+            
+            let reg = regression.logarithmic(transformed, { precision: 10 });
+            if(isNaN(reg.equation[0]) || isNaN(reg.equation[1])) return;
+            
+            let a = reg.equation[0];
+            let b = reg.equation[1];
+            
+            let ssr = 0;
+            for(let i=0; i<points.length; i++) {
+                let pred = a + b * Math.log(points[i][0] - c);
+                ssr += Math.pow(points[i][1] - pred, 2);
+            }
+            
+            if (ssr < bestSSR) {
+                bestSSR = ssr;
+                bestModel = { a, b, c };
+            }
+        }
+
+        const steps = 1000;
+        for(let i = 0; i <= steps; i++) {
+            let c = minX - 0.0001 - (rangeX * 2 * i / steps);
+            evaluate(c);
+        }
+        evaluate(0);
+
+        if (!bestModel) return null;
+        
+        let sst = 0;
+        const meanY = yVals.reduce((sum, y) => sum + y, 0) / yVals.length;
+        for(let i=0; i<yVals.length; i++) {
+            sst += Math.pow(yVals[i] - meanY, 2);
+        }
+        
+        let r2 = sst === 0 ? 1 : 1 - (bestSSR / sst);
+        
+        let aStr = bestModel.a.toPrecision(4);
+        let bStr = Math.abs(bestModel.b).toPrecision(4);
+        let cStr = Math.abs(bestModel.c).toPrecision(4);
+        let signB = bestModel.b >= 0 ? '+' : '-';
+        let signC = bestModel.c >= 0 ? '-' : '+';
+        let eqStr = `${aStr} ${signB} ${bStr} ln(x ${signC} ${cStr})`;
+        if(Math.abs(bestModel.c) < 1e-10) eqStr = `${aStr} ${signB} ${bStr} ln(x)`;
+
+        return {
+            equation: [bestModel.a, bestModel.b, bestModel.c],
+            string: eqStr,
+            r2: r2,
+            predict: function(x) {
+                return [x, bestModel.a + bestModel.b * Math.log(x - bestModel.c)];
+            }
+        };
+    }
+
     // --- 통계 분석 (Regression.js + 평행이동 + jStat) ---
     function runAnalysis() {
         const xCol = document.getElementById('xCol').value;
@@ -669,14 +815,26 @@
             return;
         }
 
-        // Regression.js 추세선 및 결정계수(R2) 계산
+        // Regression.js 추세선 및 결정계수(R2) 계산 (지수/로그는 일반화 탐색 모델 적용)
         let regResult;
-        if(modelType === 'linear') regResult = regression.linear(points, { precision: 4 });
-        else if(modelType === 'exponential') regResult = regression.exponential(points, { precision: 4 });
-        else if(modelType === 'logarithmic') regResult = regression.logarithmic(points, { precision: 4 });
-        else if(modelType === 'polynomial') regResult = regression.polynomial(points, { order: 2, precision: 4 });
+        if(modelType === 'linear') {
+            regResult = regression.linear(points, { precision: 4 });
+            if(regResult.string.includes('y = ')) regResult.string = regResult.string.replace('y = ', '');
+        }
+        else if(modelType === 'exponential') {
+            regResult = findGeneralizedExponential(points) || regression.exponential(points, { precision: 4 });
+            if(regResult.string.includes('y = ')) regResult.string = regResult.string.replace('y = ', '');
+        }
+        else if(modelType === 'logarithmic') {
+            regResult = findGeneralizedLogarithmic(points) || regression.logarithmic(points, { precision: 4 });
+            if(regResult.string.includes('y = ')) regResult.string = regResult.string.replace('y = ', '');
+        }
+        else if(modelType === 'polynomial') {
+            regResult = regression.polynomial(points, { order: 2, precision: 4 });
+            if(regResult.string.includes('y = ')) regResult.string = regResult.string.replace('y = ', '');
+        }
 
-        let equationText = regResult.string.replace('y = ', '');
+        let equationText = regResult.string;
         
         // 화면에 출력할 수식 보정 (x 대신 평행이동한 (x - shift) 형태 명시)
         if (useZeroAdjust && shiftX !== 0) {
@@ -803,14 +961,14 @@
         
         let adjX = inputX - shiftX;
         
-        if (modelType === 'logarithmic' && adjX <= 0) {
-            alert(`로그 함수 모델에서는 입력값에서 평행이동 값을 뺀 결과가 0보다 커야 합니다. (입력한 X: ${inputX}, 영점조정 후 X: ${adjX})`);
-            return;
-        }
-
         // 예측 수행
         const pred = regResult.predict(adjX);
         const predictedY = pred[1];
+
+        if (isNaN(predictedY) || !isFinite(predictedY)) {
+            alert("수학적 한계(예: 로그의 진수가 0 이하)로 인해 해당 값은 예측할 수 없습니다. 모델 범위를 확인해 주세요.");
+            return;
+        }
 
         // UI 표시
         const resultBox = document.getElementById('predict-result-box');
