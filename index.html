@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" id="theme-color-meta" content="#f4f5fa">
     <title>수학/과학 탐구용 데이터 분석기</title>
 
     <!-- Google Fonts -->
@@ -80,88 +81,67 @@
                         <!-- 인코딩 선택 -->
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span class="text-muted" style="font-size: 0.75rem;">한글이 깨질 경우 변경(CSV 전용):</span>
-                            <select id="encoding-select" class="form-control" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.75rem;" onchange="reparseCurrentFile()">
+                            <select id="encoding-select" class="form-control" aria-label="CSV 파일 인코딩 선택" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.75rem;" onchange="reparseCurrentFile()">
                                 <option value="EUC-KR">EUC-KR (국내 엑셀 기본)</option>
                                 <option value="UTF-8">UTF-8</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1.5rem; padding: 1rem;">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <div style="width: 100%;">
-                            <strong>데이터 파일 구조 안내</strong>
-                            <p class="mt-2" style="font-size: 0.85rem; color: var(--text-main);">
-                                • 파일의 첫 번째 줄에는 분석할 변수의 이름(예: 수면시간, 성적)을 입력해주세요.<br>
-                                • 두 번째 줄부터는 <b>숫자형 데이터</b>가 들어가야 합니다.
+                    <div class="grid-2 compact-grid mb-3" style="align-items: stretch;">
+                        <div class="info-col">
+                            <strong><i class="fa-solid fa-circle-info" style="color: var(--info);"></i> 데이터 파일 구조 안내</strong>
+                            <p class="mt-2" style="font-size: 0.82rem; color: var(--text-main);">
+                                • 첫 줄에는 변수 이름(예: 수면시간, 성적), 둘째 줄부터는 <b>숫자형 데이터</b>를 넣어주세요.
                             </p>
-                            <div style="background: var(--bg-app); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-sm); margin-top: 0.8rem; font-family: monospace; font-size: 0.8rem; color: var(--text-muted); position: relative;">
+                            <div style="background: var(--bg-card); border: 1px solid var(--border-glass); padding: 0.7rem; border-radius: var(--radius-sm); margin-top: 0.6rem; font-family: monospace; font-size: 0.78rem; color: var(--text-muted); position: relative;">
                                 수면시간,학업성적<br>
                                 7.5,85<br>
                                 6,72<br>
                                 ...
-                                <button class="btn btn-secondary" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="downloadSampleCSV()">
-                                    <i class="fa-solid fa-download"></i> 예시 양식 다운로드
-                                </button>
+                            </div>
+                            <button class="btn btn-secondary mt-2" style="padding: 0.35rem 0.7rem; font-size: 0.75rem;" onclick="downloadSampleCSV()">
+                                <i class="fa-solid fa-download"></i> 예시 양식 다운로드
+                            </button>
+                        </div>
+                        <div class="info-col">
+                            <strong><i class="fa-solid fa-bolt" style="color: var(--primary);"></i> 빠르게 시작하기</strong>
+                            <p class="mt-2" style="font-size: 0.82rem; color: var(--text-main);">파일이 없다면 샘플로 바로 체험하거나, 공공 데이터에서 탐구 주제를 찾아보세요.</p>
+                            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem;">
+                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('sleep')">수면-성적</button>
+                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('temp')">기온-판매량</button>
+                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('height')">키-발크기</button>
+                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('bacteria')">시간-세균수</button>
+                            </div>
+                            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem;">
+                                <a href="https://kosis.kr/index/index.do" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; text-decoration: none;">
+                                    <i class="fa-solid fa-link"></i> KOSIS
+                                </a>
+                                <a href="https://www.data.go.kr/" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; text-decoration: none;">
+                                    <i class="fa-solid fa-link"></i> 공공데이터포털
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                    <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일 업로드 영역, 클릭 또는 드래그하여 파일 선택" onclick="document.getElementById('fileInput').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                         <i class="fa-solid fa-cloud-arrow-up" id="dropzone-icon"></i>
                         <h4 id="dropzone-title">여기로 파일을 드래그하거나 클릭하세요</h4>
                         <p class="text-muted mt-2" id="dropzone-desc">CSV, 엑셀(.xlsx) 파일을 지원합니다</p>
-                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden">
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden" aria-label="데이터 파일 선택">
                     </div>
 
                     <!-- 클립보드 붙여넣기 -->
                     <div class="mt-4">
-                        <div class="checkbox-wrapper" style="cursor:pointer;" onclick="togglePasteArea()">
+                        <div class="checkbox-wrapper" role="button" tabindex="0" style="cursor:pointer;" onclick="togglePasteArea()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                             <i class="fa-solid fa-clipboard" style="color: var(--primary);"></i>
                             <label style="cursor:pointer;">💡 엑셀/구글시트에서 표를 복사했다면? 여기에 바로 붙여넣기</label>
                         </div>
                         <div id="paste-area-wrapper" class="hidden mt-2">
-                            <textarea id="pasteArea" class="form-control" rows="4" placeholder="엑셀이나 구글 시트에서 표(헤더 포함)를 복사한 뒤 이 안을 클릭하고 Ctrl+V로 붙여넣으세요."></textarea>
+                            <textarea id="pasteArea" class="form-control" rows="4" aria-label="엑셀/구글시트에서 복사한 표 데이터 붙여넣기" placeholder="엑셀이나 구글 시트에서 표(헤더 포함)를 복사한 뒤 이 안을 클릭하고 Ctrl+V로 붙여넣으세요."></textarea>
                             <button class="btn btn-primary mt-2" onclick="handlePastedData()">
                                 <i class="fa-solid fa-arrow-right-to-bracket"></i> 붙여넣은 데이터 불러오기
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 샘플 데이터셋 -->
-                <div class="card glass fade-in" style="padding: 1.2rem;">
-                    <h4 style="font-size: 0.95rem; margin-bottom: 0.2rem;"><i class="fa-solid fa-vial-circle-check"></i> 파일이 없다면? 샘플 데이터로 바로 체험해보기</h4>
-                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 0.8rem;">버튼을 누르면 예시 데이터가 바로 불러와집니다. 서로 다른 함수 유형을 연습해보세요.</p>
-                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                        <button class="btn btn-secondary" onclick="loadSampleDataset('sleep')">
-                            <i class="fa-solid fa-bed"></i> 수면시간 vs 학업성적 (선형)
-                        </button>
-                        <button class="btn btn-secondary" onclick="loadSampleDataset('temp')">
-                            <i class="fa-solid fa-temperature-half"></i> 기온 vs 음료 판매량 (2차)
-                        </button>
-                        <button class="btn btn-secondary" onclick="loadSampleDataset('height')">
-                            <i class="fa-solid fa-shoe-prints"></i> 키 vs 발 크기 (선형)
-                        </button>
-                        <button class="btn btn-secondary" onclick="loadSampleDataset('bacteria')">
-                            <i class="fa-solid fa-bacterium"></i> 시간 vs 세균 수 (지수)
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 탐구용 데이터 추천 사이트 -->
-                <div class="card glass fade-in" style="padding: 1.2rem; display: flex; gap: 1rem; align-items: center;">
-                    <div style="font-size: 2rem; color: var(--primary);"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
-                    <div>
-                        <h4 style="font-size: 0.95rem; margin-bottom: 0.2rem;">탐구용 데이터를 어디서 찾을지 막막하다면?</h4>
-                        <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 0.5rem;">신뢰할 수 있는 국가 및 공공 기관의 데이터를 활용해 보세요.</p>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <a href="https://kosis.kr/index/index.do" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none;">
-                                <i class="fa-solid fa-link"></i> KOSIS 국가통계포털
-                            </a>
-                            <a href="https://www.data.go.kr/" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; text-decoration: none;">
-                                <i class="fa-solid fa-link"></i> 공공데이터포털
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -184,7 +164,7 @@
                 <div class="card glass" id="step2-card">
                     <h3><i class="fa-solid fa-bullseye"></i> Step 2. 분석 설정</h3>
                     
-                    <div id="col-error" class="alert alert-warning hidden">
+                    <div id="col-error" class="alert alert-warning hidden" aria-live="polite">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <div>
                             <strong>숫자형 데이터 부족</strong>
@@ -203,7 +183,15 @@
                         </div>
                     </div>
 
-                    <div class="form-group mt-4">
+                    <!-- X축 영점 조절 체크박스: 결과(R²)에 영향을 주므로 모델 선택보다 먼저 결정합니다 -->
+                    <div class="checkbox-wrapper mt-4" role="button" tabindex="0" onclick="document.getElementById('zeroPointAdjust').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+                        <input type="checkbox" id="zeroPointAdjust" onclick="event.stopPropagation()">
+                        <label for="zeroPointAdjust">
+                            💡 X축 영점 조절 켜기 (연도 등 숫자가 큰 데이터일 때 오류를 방지합니다 — 모델별 R²에 영향을 주므로 먼저 결정하세요)
+                        </label>
+                    </div>
+
+                    <div class="form-group mt-3">
                         <div class="flex justify-between items-center">
                             <label for="trendModel" style="margin-bottom: 0;">데이터 관계 모델링 (함수 선택)</label>
                             <button class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;" onclick="runAutoRecommend()">
@@ -219,15 +207,7 @@
                             <option value="poly4">6. 4차 다항 함수 (Quartic: y = ax⁴ + bx³ + cx² + dx + e)</option>
                         </select>
 
-                        <div id="auto-recommend-box" class="hidden mt-3"></div>
-
-                        <!-- X축 영점 조절 체크박스 -->
-                        <div class="checkbox-wrapper" onclick="document.getElementById('zeroPointAdjust').click()">
-                            <input type="checkbox" id="zeroPointAdjust" onclick="event.stopPropagation()">
-                            <label for="zeroPointAdjust">
-                                💡 X축 영점 조절 켜기 (연도 등 숫자가 큰 데이터일 때 오류를 방지합니다)
-                            </label>
-                        </div>
+                        <div id="auto-recommend-box" class="hidden mt-3" aria-live="polite"></div>
                     </div>
 
                     <div class="mt-6 flex justify-between items-center" id="analyze-action">
@@ -266,11 +246,11 @@
                         </div>
                     </div>
 
-                    <div id="interpretation-box"></div>
+                    <div id="interpretation-box" aria-live="polite"></div>
 
                     <!-- 차트 커스텀 옵션 -->
                     <div class="card glass mt-6" style="background: var(--bg-app);">
-                        <div class="flex justify-between items-center" style="cursor:pointer;" onclick="toggleChartOptions()">
+                        <div class="flex justify-between items-center" role="button" tabindex="0" aria-expanded="false" aria-controls="chart-options-body" style="cursor:pointer;" onclick="toggleChartOptions()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                             <h3 style="margin-bottom:0;"><i class="fa-solid fa-sliders"></i> 차트 꾸미기 옵션</h3>
                             <i class="fa-solid fa-chevron-down" id="chart-options-caret"></i>
                         </div>
@@ -325,7 +305,9 @@
 
                     <!-- 차트 -->
                     <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
-                    <p class="text-muted mb-4">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
+                    <p class="text-muted mb-3">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
+                    <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
+                    <div class="eq-display-box mb-3" id="chart-eq-latex"></div>
                     <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
 
                     <!-- 잔차 그래프 -->
@@ -346,8 +328,9 @@
             <div id="view-step3" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Step 3. 데이터 예측하기</h3>
-                    <p class="text-muted mb-3">가설 검증(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">가설 검증(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
 
+                    <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                     <div class="eq-display-box mb-3" id="predict-eq-latex"></div>
 
                     <div id="predict-chart-container" class="mb-4" style="width: 100%; height: 420px; border-radius: var(--radius-sm); overflow:hidden;"></div>
@@ -362,7 +345,7 @@
                         </div>
                     </div>
 
-                    <div id="predict-result-box" class="hidden mt-6 alert alert-success" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
+                    <div id="predict-result-box" class="hidden mt-6 alert alert-success" aria-live="polite" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
                         <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-chart-line"></i> 예측 결과</div>
                         <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-main);">
                             입력한 <strong id="pred-x-name" style="color: var(--primary);">독립변수</strong> 값이 <strong id="pred-x-val">0</strong>일 때, <br>
@@ -376,13 +359,14 @@
             <div id="view-step4" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-square-root-variable"></i> Step 4. 정적분으로 구간 넓이 탐구하기</h3>
-                    <p class="text-muted mb-3">가설 검증(Step 2)에서 찾은 함수를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산하고 시각화합니다.</p>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">가설 검증(Step 2)에서 찾은 함수를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산하고 시각화합니다.</p>
 
+                    <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                     <div class="eq-display-box mb-3" id="integral-eq-preview"></div>
 
                     <div id="integral-chart-container" class="mb-4" style="width: 100%; height: 420px; border-radius: var(--radius-sm); overflow:hidden;"></div>
 
-                    <div id="integral-domain-warning" class="alert alert-warning hidden">
+                    <div id="integral-domain-warning" class="alert alert-warning hidden" aria-live="polite">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <div><span id="integral-domain-warning-text"></span></div>
                     </div>
@@ -401,7 +385,7 @@
                         <i class="fa-solid fa-chart-area"></i> 정적분 계산 및 넓이 시각화
                     </button>
 
-                    <div id="integral-result-box" class="hidden mt-4">
+                    <div id="integral-result-box" class="hidden mt-4" aria-live="polite">
                         <div class="alert alert-success" style="flex-direction: column; gap: 0.4rem; padding: 1.1rem 1.3rem;">
                             <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-calculator"></i> 계산 결과</div>
                             <div id="integral-method-note" style="font-size: 0.85rem; color: var(--text-muted);"></div>

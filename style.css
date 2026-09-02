@@ -33,10 +33,12 @@
             --radius-sm: 8px;
             --radius-md: 14px;
             --radius-lg: 24px;
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color-scheme: light;
         }
 
         [data-theme="dark"] {
+            color-scheme: dark;
             --bg-app:        hsl(222, 25%, 7%);
             --bg-sidebar:    hsl(222, 30%, 10%);
             --bg-card:       hsla(222, 20%, 15%, 0.65);
@@ -72,7 +74,7 @@
             overflow: hidden;
         }
 
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-title); font-weight: 600; color: var(--text-main); }
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-title); font-weight: 600; color: var(--text-main); text-wrap: balance; }
         h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
         h2 { font-size: 1.3rem; }
         h3 { font-size: 0.95rem; margin-bottom: 0.7rem; }
@@ -165,7 +167,8 @@
         th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-glass); }
         th { background-color: var(--bg-app); font-weight: 600; position: sticky; top: 0; z-index: 1; }
         
-        .stat-value { font-family: var(--font-title); font-size: 2.2rem; font-weight: 800; color: var(--primary); }
+        .stat-value { font-family: var(--font-title); font-size: 2.2rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+        table { font-variant-numeric: tabular-nums; }
 
         /* 수식(LaTeX/KaTeX) 표시 박스 */
         .eq-display-box {
@@ -173,6 +176,25 @@
             padding: 0.9rem 1.1rem; overflow-x: auto; color: var(--primary); font-size: 1.05rem;
         }
         .eq-display-box .katex { color: var(--primary); }
+        .eq-label { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; }
+
+        /* Step1 안내 2단 레이아웃 (파일 구조 안내 / 빠르게 시작하기) */
+        .info-col {
+            background: var(--bg-app); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);
+            padding: 0.9rem 1rem; font-size: 0.85rem;
+        }
+
+        /* 접근성: 키보드 포커스 표시 (마우스 클릭 시엔 표시하지 않음) */
+        .form-control:focus { border-color: var(--primary); }
+        .form-control:focus-visible { box-shadow: 0 0 0 3px var(--primary-glow); }
+        [role="button"]:focus-visible, .dropzone:focus-visible, .btn:focus-visible, .nav-item:focus-visible {
+            outline: 2px solid var(--primary); outline-offset: 2px;
+        }
+
+        /* 터치 상호작용: 더블탭 확대 지연 방지, 탭 하이라이트 의도적으로 지정 */
+        .btn, .nav-item, .checkbox-wrapper, .dropzone, [role="button"] {
+            touch-action: manipulation; -webkit-tap-highlight-color: hsla(255, 65%, 60%, 0.15);
+        }
 
         /* 체크박스 커스텀 디자인 */
         .checkbox-wrapper { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: var(--transition-smooth); }
@@ -238,4 +260,13 @@
             .stat-value { font-size: 1.6rem; }
             /* 좁은 화면에서 Plotly 모드바가 차트 제목과 겹치는 것 방지 */
             .js-plotly-plot .modebar-container { display: none; }
+        }
+
+        /* 움직임에 민감한 사용자를 위한 애니메이션 축소 */
+        @media (prefers-reduced-motion: reduce) {
+            .fade-in { animation: none; }
+            .dropzone:hover i { animation: none; transform: none; }
+            .dropzone:hover { transform: none; }
+            .btn-primary:hover { transform: none; }
+            * { transition-duration: 0.01ms !important; }
         }

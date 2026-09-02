@@ -71,6 +71,11 @@
             icon.classList.replace('fa-moon', 'fa-sun');
         }
 
+        const themeColorMeta = document.getElementById('theme-color-meta');
+        if (themeColorMeta) {
+            themeColorMeta.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--bg-app').trim());
+        }
+
         const activeNav = document.querySelector('.nav-item.active');
         if (activeNav) refreshChartsForView(activeNav.id.replace('nav-', ''));
     }
@@ -767,7 +772,9 @@
 
         // UI 업데이트
         document.getElementById('result-card').classList.remove('hidden');
-        renderLatex(document.getElementById('res-eq'), buildEquationLatex({ regResult, modelType, shiftX, useZeroAdjust }));
+        const eqLatexStr = buildEquationLatex({ regResult, modelType, shiftX, useZeroAdjust });
+        renderLatex(document.getElementById('res-eq'), eqLatexStr);
+        renderLatex(document.getElementById('chart-eq-latex'), eqLatexStr);
         document.getElementById('res-r2').textContent = r2.toFixed(4);
         document.getElementById('res-p').textContent = p_value.toFixed(4);
 
@@ -857,9 +864,12 @@
     function toggleChartOptions() {
         const body = document.getElementById('chart-options-body');
         const caret = document.getElementById('chart-options-caret');
+        const toggleBtn = document.getElementById('chart-options-caret').closest('[role="button"]');
+        const willShow = body.classList.contains('hidden');
         body.classList.toggle('hidden');
         caret.classList.toggle('fa-chevron-down');
         caret.classList.toggle('fa-chevron-up');
+        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', String(willShow));
     }
 
     function applyChartOptions() {
