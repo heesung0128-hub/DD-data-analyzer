@@ -18,14 +18,14 @@
         document.getElementById('view-' + viewName).classList.remove('hidden');
         document.getElementById('nav-' + viewName).classList.add('active');
 
-        // 예측 뷰로 넘어갈 때 라벨 업데이트
         if(viewName === 'step3' && window.currentChartData) {
             document.getElementById('predict-input-label').textContent = `예측하고 싶은 [${window.currentChartData.xLabel}] 값을 입력하세요:`;
+            renderPredictEquation();
         }
-        // 적분 뷰로 넘어갈 때 함수식 업데이트
         if(viewName === 'step4' && window.currentChartData) {
-            document.getElementById('integral-eq-preview').textContent = `y = ${window.currentChartData.equation}`;
+            renderIntegralEquationPreview();
         }
+        refreshChartsForView(viewName);
     }
 
     function proceedToStep2() {
@@ -40,6 +40,25 @@
         switchView('step3');
     }
 
+    // --- 차트 렌더링이 필요한 뷰로 들어갈 때/테마 전환 시 해당 뷰의 차트 다시 그리기 ---
+    function refreshChartsForView(viewName) {
+        if (!window.currentChartData) return;
+        if (viewName === 'step2') {
+            renderMainChart();
+            if (window.currentChartData.residuals) {
+                renderResidualChart(window.currentChartData.xData, window.currentChartData.residuals, window.currentChartData.xLabel);
+            }
+        } else if (viewName === 'step3') {
+            renderPredictChart();
+        } else if (viewName === 'step4') {
+            if (window.currentIntegralRange) {
+                renderIntegralChart(window.currentIntegralRange.lo, window.currentIntegralRange.hi);
+            } else {
+                renderStep4PreviewChart();
+            }
+        }
+    }
+
     // --- 테마 토글 ---
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
@@ -52,10 +71,8 @@
             icon.classList.replace('fa-moon', 'fa-sun');
         }
 
-        redrawMainChart();
-        if (window.currentChartData && window.currentChartData.residuals) {
-            renderResidualChart(window.currentChartData.xData, window.currentChartData.residuals, window.currentChartData.xLabel);
-        }
+        const activeNav = document.querySelector('.nav-item.active');
+        if (activeNav) refreshChartsForView(activeNav.id.replace('nav-', ''));
     }
 
     // --- 글로벌 변수 ---
@@ -450,39 +467,6 @@
         return modelType === 'linear' || modelType === 'poly2' || modelType === 'poly3' || modelType === 'poly4';
     }
 
-    // --- 순위 상관(스피어만) 계산용 순위 변환 (동점은 평균 순위 처리) ---
-    function rankArray(arr) {
-        const sorted = arr.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
-        const ranks = new Array(arr.length);
-        let i = 0;
-        while (i < sorted.length) {
-            let j = i;
-            while (j + 1 < sorted.length && sorted[j + 1].v === sorted[i].v) j++;
-            const avgRank = (i + j) / 2 + 1;
-            for (let k = i; k <= j; k++) ranks[sorted[k].i] = avgRank;
-            i = j + 1;
-        }
-        return ranks;
-    }
-
-    function spearmanCorrelation(xArr, yArr) {
-        const rx = rankArray(xArr);
-        const ry = rankArray(yArr);
-        return jStat.corrcoeff(rx, ry);
-    }
-
-    function describeCorrelation(r) {
-        const abs = Math.abs(r);
-        if (abs < 0.05) return '두 변수 사이에 뚜렷한 상관관계가 거의 없습니다.';
-        const dir = r > 0 ? '양의' : '음의';
-        let strength;
-        if (abs >= 0.7) strength = '강한';
-        else if (abs >= 0.4) strength = '중간 정도의';
-        else if (abs >= 0.2) strength = '약한';
-        else strength = '매우 약한';
-        return `${strength} ${dir} 상관관계입니다.`;
-    }
-
     // --- 최적 모델 자동 추천 ---
     function runAutoRecommend() {
         const xCol = document.getElementById('xCol').value;
@@ -576,7 +560,106 @@
         document.getElementById('trendModel').value = best.type;
     }
 
-    // --- 통계 분석 (Regression.js + 평행이동 + jStat) ---
+    // ==================== 수식 LaTeX 변환 (KaTeX) ====================
+
+    function numToLatex(num) {
+        if (num === undefined || num === null || isNaN(num)) return '0';
+        let s = num.toPrecision(4);
+        if (s.includes('e')) {
+            const [mantissa, exp] = s.split('e');
+            const expNum = parseInt(exp, 10);
+            return `${mantissa} \\times 10^{${expNum}}`;
+        }
+        return s;
+    }
+
+    // 영점 조절이 켜져 있으면 x를 (x - shift) 형태로 표기
+    function getXTermLatex(shiftX, useZeroAdjust) {
+        if (useZeroAdjust && shiftX !== 0) {
+            const sign = shiftX > 0 ? '-' : '+';
+            return `\\left(x ${sign} ${numToLatex(Math.abs(shiftX))}\\right)`;
+        }
+        return 'x';
+    }
+
+    // 다항함수(선형~4차) 계수 배열 [최고차항, ..., 상수항] -> LaTeX
+    function polynomialToLatex(equation, xTerm) {
+        const order = equation.length - 1;
+        const parts = [];
+        for (let i = 0; i <= order; i++) {
+            const power = order - i;
+            const coef = equation[i];
+            if (Math.abs(coef) < 1e-12) continue;
+            const absStr = numToLatex(Math.abs(coef));
+            let term;
+            if (power === 0) term = absStr;
+            else if (power === 1) term = `${absStr}${xTerm}`;
+            else term = `${absStr}${xTerm}^{${power}}`;
+            parts.push({ sign: coef >= 0 ? '+' : '-', term });
+        }
+        if (parts.length === 0) return 'y = 0';
+        let s = (parts[0].sign === '-' ? '-' : '') + parts[0].term;
+        for (let i = 1; i < parts.length; i++) s += ` ${parts[i].sign} ${parts[i].term}`;
+        return `y = ${s}`;
+    }
+
+    // 다항함수 부정적분(원시함수) F(x) -> LaTeX
+    function polynomialAntiderivativeLatex(equation, xTerm) {
+        const order = equation.length - 1;
+        const parts = [];
+        for (let i = 0; i <= order; i++) {
+            const power = order - i;
+            const newPower = power + 1;
+            const coef = equation[i] / newPower;
+            if (Math.abs(coef) < 1e-12) continue;
+            const absStr = numToLatex(Math.abs(coef));
+            let term;
+            if (newPower === 0) term = absStr;
+            else if (newPower === 1) term = `${absStr}${xTerm}`;
+            else term = `${absStr}${xTerm}^{${newPower}}`;
+            parts.push({ sign: coef >= 0 ? '+' : '-', term });
+        }
+        if (parts.length === 0) return 'F(x) = 0 + C';
+        let s = (parts[0].sign === '-' ? '-' : '') + parts[0].term;
+        for (let i = 1; i < parts.length; i++) s += ` ${parts[i].sign} ${parts[i].term}`;
+        return `F(x) = ${s} + C`;
+    }
+
+    // 모델 타입에 맞춰 현재 추세선 식을 LaTeX로 구성 (Step2/3/4 공용)
+    function buildEquationLatex(d) {
+        const xTerm = getXTermLatex(d.shiftX, d.useZeroAdjust);
+        const eq = d.regResult.equation;
+
+        if (isPolynomialFamily(d.modelType)) {
+            return polynomialToLatex(eq, xTerm);
+        } else if (d.modelType === 'exponential') {
+            const [a, b, c] = eq;
+            let s = `y = ${numToLatex(a)} e^{${numToLatex(b)}${xTerm}}`;
+            if (c !== undefined && Math.abs(c) > 1e-9) {
+                s += ` ${c >= 0 ? '+' : '-'} ${numToLatex(Math.abs(c))}`;
+            }
+            return s;
+        } else if (d.modelType === 'logarithmic') {
+            const [a, b, c] = eq;
+            const inner = (c !== undefined && Math.abs(c) > 1e-9) ? `${xTerm} ${c >= 0 ? '-' : '+'} ${numToLatex(Math.abs(c))}` : xTerm;
+            const signB = b >= 0 ? '+' : '-';
+            return `y = ${numToLatex(a)} ${signB} ${numToLatex(Math.abs(b))} \\ln\\left(${inner}\\right)`;
+        }
+        return 'y = f(x)';
+    }
+
+    // KaTeX 렌더링 (실패 시 일반 텍스트로 대체)
+    function renderLatex(el, latex, displayMode) {
+        if (!el) return;
+        try {
+            katex.render(latex, el, { throwOnError: false, displayMode: !!displayMode });
+        } catch (e) {
+            el.textContent = latex;
+        }
+    }
+
+    // ==================== 통계 분석 ====================
+
     function runAnalysis() {
         const xCol = document.getElementById('xCol').value;
         const yCol = document.getElementById('yCol').value;
@@ -639,12 +722,12 @@
         // Regression.js 추세선 및 결정계수(R2) 계산
         let regResult = fitModel(modelType, points);
         if(regResult.string.includes('y = ')) regResult.string = regResult.string.replace('y = ', '');
-        // regression.js는 음수 계수를 "+ -3" 형태로 표기하므로 "- 3" 형태로 보기 좋게 정리
+        // regression.js는 음수 계수를 "+ -3" 형태로 표기하므로 "- 3" 형태로 보기 좋게 정리 (다운로드 리포트용)
         regResult.string = regResult.string.replace(/\+ -/g, '- ');
 
         let equationText = regResult.string;
 
-        // 화면에 출력할 수식 보정 (x 대신 평행이동한 (x - shift) 형태 명시)
+        // 다운로드 리포트용 평문 수식 (x 대신 평행이동한 (x - shift) 형태 명시)
         if (useZeroAdjust && shiftX !== 0) {
             let shiftStr = shiftX > 0 ? `- ${shiftX}` : `+ ${Math.abs(shiftX)}`;
             equationText = equationText.replace(/x/g, `(x ${shiftStr})`);
@@ -652,9 +735,8 @@
 
         const r2 = regResult.r2;
 
-        // jStat: 피어슨 상관계수 및 p-value (선형 기준, 참고용)
+        // jStat: p-value (선형 피어슨 기준, 참고용)
         const pearsonR = jStat.corrcoeff(xData, yData);
-        const spearmanR = spearmanCorrelation(xData, yData);
         const n = xData.length;
         const t_stat = pearsonR * Math.sqrt(n - 2) / Math.sqrt(1 - pearsonR * pearsonR);
         const p_value = 2 * (1 - jStat.studentt.cdf(Math.abs(t_stat), n - 2));
@@ -685,13 +767,9 @@
 
         // UI 업데이트
         document.getElementById('result-card').classList.remove('hidden');
-        document.getElementById('res-eq').textContent = equationText;
+        renderLatex(document.getElementById('res-eq'), buildEquationLatex({ regResult, modelType, shiftX, useZeroAdjust }));
         document.getElementById('res-r2').textContent = r2.toFixed(4);
         document.getElementById('res-p').textContent = p_value.toFixed(4);
-        document.getElementById('res-pearson').textContent = pearsonR.toFixed(3);
-        document.getElementById('res-spearman').textContent = spearmanR.toFixed(3);
-        document.getElementById('res-pearson-note').innerHTML = `${describeCorrelation(pearsonR)}<br><span style="opacity:0.8;">(선형적 경향 기준)</span>`;
-        document.getElementById('res-spearman-note').innerHTML = `${describeCorrelation(spearmanR)}<br><span style="opacity:0.8;">(순위 기준, 비선형 단조관계도 포착)</span>`;
 
         const interpBox = document.getElementById('interpretation-box');
         let interpHtml = '';
@@ -756,11 +834,13 @@
             equation: equationText,
             regResult: regResult,
             shiftX: shiftX,
+            useZeroAdjust: useZeroAdjust,
             modelType: modelType,
-            residuals: residuals,
-            pearsonR, spearmanR, r2, n: points.length
+            residuals: residuals
         };
-        redrawMainChart();
+        window.currentIntegralRange = null;
+
+        renderMainChart();
         renderResidualChart(xData, residuals, xCol);
 
         // 예측/적분 단계 잠금 해제
@@ -803,17 +883,11 @@
         if (ymin !== '' && ymax !== '') opts.yRange = [parseFloat(ymin), parseFloat(ymax)];
 
         window.currentChartOptions = opts;
-        redrawMainChart();
+        renderMainChart();
     }
 
-    function redrawMainChart() {
-        if (!window.currentChartData) return;
-        const d = window.currentChartData;
-        renderChart(d.xData, d.yData, d.curveX, d.curveY, d.xLabel, d.yLabel, d.equation, window.currentChartOptions);
-    }
-
-    // --- 그래프 렌더링 ---
-    function renderChart(xData, yData, curveX, curveY, xLabel, yLabel, equationStr, overrides) {
+    // --- 그래프 렌더링 (Step2/3/4 공용) ---
+    function renderChart(containerId, xData, yData, curveX, curveY, xLabel, yLabel, overrides) {
         overrides = overrides || {};
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#e2e8f0' : '#1a202c';
@@ -838,14 +912,42 @@
         const layout = {
             autosize: true, plot_bgcolor: paperColor, paper_bgcolor: paperColor,
             font: { color: textColor, family: 'Inter' },
-            title: { text: overrides.title || `y = ${equationStr}`, font: { family: 'Outfit', size: 16 } },
             xaxis: xaxis,
             yaxis: yaxis,
-            margin: { l: 50, r: 20, t: 40, b: 50 },
+            margin: { l: 50, r: 20, t: overrides.title ? 40 : 15, b: 50 },
             legend: { orientation: "h", y: -0.2 }
         };
+        if (overrides.title) layout.title = { text: overrides.title, font: { family: 'Outfit', size: 16 } };
 
-        Plotly.newPlot('chart-container', [scatter, trendline], layout, { responsive: true, displayModeBar: true, displaylogo: false });
+        Plotly.newPlot(containerId, [scatter, trendline], layout, { responsive: true, displayModeBar: true, displaylogo: false });
+    }
+
+    function renderMainChart() {
+        if (!window.currentChartData) return;
+        const d = window.currentChartData;
+        renderChart('chart-container', d.xData, d.yData, d.curveX, d.curveY, d.xLabel, d.yLabel, window.currentChartOptions);
+    }
+
+    function renderPredictChart() {
+        if (!window.currentChartData) return;
+        const d = window.currentChartData;
+        renderChart('predict-chart-container', d.xData, d.yData, d.curveX, d.curveY, d.xLabel, d.yLabel, window.currentChartOptions);
+    }
+
+    function renderStep4PreviewChart() {
+        if (!window.currentChartData) return;
+        const d = window.currentChartData;
+        renderChart('integral-chart-container', d.xData, d.yData, d.curveX, d.curveY, d.xLabel, d.yLabel, window.currentChartOptions);
+    }
+
+    function renderPredictEquation() {
+        if (!window.currentChartData) return;
+        renderLatex(document.getElementById('predict-eq-latex'), buildEquationLatex(window.currentChartData));
+    }
+
+    function renderIntegralEquationPreview() {
+        if (!window.currentChartData) return;
+        renderLatex(document.getElementById('integral-eq-preview'), buildEquationLatex(window.currentChartData));
     }
 
     // --- 잔차 그래프 렌더링 ---
@@ -869,7 +971,7 @@
             font: { color: textColor, family: 'Inter' },
             xaxis: { title: xLabel, gridcolor: gridColor, zerolinecolor: gridColor },
             yaxis: { title: '잔차 (실제값 - 예측값)', gridcolor: gridColor, zerolinecolor: gridColor },
-            margin: { l: 60, r: 20, t: 20, b: 50 },
+            margin: { l: 60, r: 20, t: 15, b: 50 },
             legend: { orientation: "h", y: -0.3 }
         };
         Plotly.newPlot('residual-chart-container', [scatter, zeroLine], layout, { responsive: true, displayModeBar: true, displaylogo: false });
@@ -889,7 +991,7 @@
             return;
         }
 
-        const { regResult, shiftX, modelType, xLabel, yLabel } = window.currentChartData;
+        const { regResult, shiftX, xLabel, yLabel } = window.currentChartData;
 
         let adjX = inputX - shiftX;
 
@@ -928,28 +1030,6 @@
         return antiderivativeAt(t2) - antiderivativeAt(t1);
     }
 
-    // 다항함수 부정적분 F(x) 문자열 생성
-    function polynomialAntiderivativeString(equation) {
-        const order = equation.length - 1;
-        const terms = [];
-        for (let i = 0; i <= order; i++) {
-            const power = order - i;
-            const newPower = power + 1;
-            const coef = equation[i] / newPower;
-            if (Math.abs(coef) < 1e-12) continue;
-            const sign = coef >= 0 ? '+' : '-';
-            const absCoefStr = Math.abs(coef).toPrecision(4);
-            const varStr = newPower === 0 ? '' : (newPower === 1 ? 'x' : `x^${newPower}`);
-            terms.push({ sign, str: varStr ? `${absCoefStr}${varStr}` : absCoefStr });
-        }
-        if (terms.length === 0) return '0 + C';
-        let str = (terms[0].sign === '-' ? '-' : '') + terms[0].str;
-        for (let i = 1; i < terms.length; i++) {
-            str += ` ${terms[i].sign} ${terms[i].str}`;
-        }
-        return str + ' + C';
-    }
-
     // 심슨(Simpson)의 법칙을 이용한 수치적분 (지수/로그 함수용)
     function simpsonIntegral(f, a, b, n) {
         if (n % 2 === 1) n++;
@@ -980,7 +1060,8 @@
             return;
         }
 
-        const { regResult, shiftX, modelType } = window.currentChartData;
+        const d = window.currentChartData;
+        const { regResult, shiftX, modelType, useZeroAdjust } = d;
         const warnBox = document.getElementById('integral-domain-warning');
         warnBox.classList.add('hidden');
 
@@ -1001,6 +1082,7 @@
             return regResult.predict(adjX)[1];
         };
 
+        const xTerm = getXTermLatex(shiftX, useZeroAdjust);
         let integralValue, methodNote;
         const formulaBox = document.getElementById('integral-formula-box');
         formulaBox.style.display = 'none';
@@ -1009,18 +1091,20 @@
             const loT = lo - shiftX, hiT = hi - shiftX;
             integralValue = sign * polynomialDefiniteIntegral(regResult.equation, loT, hiT);
             methodNote = '다항함수이므로 부정적분 공식을 이용해 정확한 값을 계산했습니다.';
-            const antiStr = polynomialAntiderivativeString(regResult.equation);
             formulaBox.style.display = 'block';
-            formulaBox.innerHTML = `F(x) = ${antiStr} &nbsp;→&nbsp; ∫ = F(${hi}) − F(${lo})`;
+            renderLatex(formulaBox, `${polynomialAntiderivativeLatex(regResult.equation, xTerm)} \\;\\Rightarrow\\; \\int = F(${hi}) - F(${lo})`);
         } else {
             integralValue = sign * simpsonIntegral(f, lo, hi, 200);
-            methodNote = `${modelType === 'exponential' ? '지수' : '로그'}함수는 심슨(Simpson)의 법칙을 이용해 계산한 수치적분 근사값입니다.`;
+            methodNote = `${modelType === 'exponential' ? '지수' : '로그'}함수는 닫힌 형태의 부정적분 대신, 심슨(Simpson)의 법칙을 이용한 수치적분 근사값을 계산했습니다.`;
+            formulaBox.style.display = 'block';
+            renderLatex(formulaBox, buildEquationLatex(d));
         }
+
+        window.currentIntegralRange = { lo, hi };
 
         document.getElementById('integral-result-box').classList.remove('hidden');
         document.getElementById('integral-method-note').textContent = methodNote;
-        document.getElementById('integral-a-val').textContent = a;
-        document.getElementById('integral-b-val').textContent = b;
+        renderLatex(document.getElementById('integral-notation-latex'), `\\int_{${lo}}^{${hi}} f(x)\\,dx ${isPolynomialFamily(modelType) ? '=' : '\\approx'}`);
         document.getElementById('integral-result-val').textContent = integralValue.toFixed(4);
 
         renderIntegralChart(lo, hi);
@@ -1031,14 +1115,15 @@
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#e2e8f0' : '#1a202c';
         const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+        const overrides = window.currentChartOptions || {};
 
         const scatter = {
             x: d.xData, y: d.yData, mode: 'markers', type: 'scatter', name: '실제 데이터',
-            marker: { color: 'hsl(255, 65%, 60%)', size: 7, opacity: 0.5 }
+            marker: { color: overrides.pointColor || 'hsl(255, 65%, 60%)', size: 7, opacity: 0.5 }
         };
         const trendline = {
             x: d.curveX, y: d.curveY, mode: 'lines', type: 'scatter', name: '함수 곡선',
-            line: { color: 'hsl(5, 75%, 55%)', dash: 'dash', width: 2 }
+            line: { color: overrides.lineColor || 'hsl(5, 75%, 55%)', dash: 'dash', width: 2 }
         };
 
         const fillX = [], fillY = [];
@@ -1057,10 +1142,10 @@
         const layout = {
             autosize: true, plot_bgcolor: 'rgba(0,0,0,0)', paper_bgcolor: 'rgba(0,0,0,0)',
             font: { color: textColor, family: 'Inter' },
-            title: { text: `구간 [${lo}, ${hi}]에서의 정적분 넓이`, font: { family: 'Outfit', size: 16 } },
+            title: { text: `구간 [${lo}, ${hi}]에서의 정적분 넓이`, font: { family: 'Outfit', size: 15 } },
             xaxis: { title: d.xLabel, gridcolor: gridColor, zerolinecolor: gridColor },
             yaxis: { title: d.yLabel, gridcolor: gridColor, zerolinecolor: gridColor },
-            margin: { l: 55, r: 20, t: 40, b: 50 },
+            margin: { l: 55, r: 20, t: 35, b: 50 },
             legend: { orientation: "h", y: -0.2 }
         };
 
@@ -1073,18 +1158,15 @@
         const d = window.currentChartData;
         const xCol = d.xLabel;
         const yCol = d.yLabel;
-        const eqVal = document.getElementById('res-eq').textContent;
         const r2Val = document.getElementById('res-r2').textContent;
         const modelType = document.getElementById('trendModel').options[document.getElementById('trendModel').selectedIndex].text;
 
         let result_text = `==== 동덕여고 데이터 기반 가설 탐구 결과 레포트 ====\n\n`;
         result_text += `[분석 변수]\n- 독립변수(X): ${xCol}\n- 종속변수(Y): ${yCol}\n\n`;
         result_text += `[분석 모델]\n- ${modelType}\n\n`;
-        result_text += `[도출된 수식]\n- y = ${eqVal}\n\n`;
+        result_text += `[도출된 수식]\n- y = ${d.equation}\n\n`;
         result_text += `[통계 검증]\n- 설명력 (R²): ${r2Val}\n`;
         result_text += `  (1에 가까울수록 함수가 데이터를 잘 설명함)\n`;
-        result_text += `- 피어슨 상관계수 (r): ${d.pearsonR.toFixed(3)}\n`;
-        result_text += `- 스피어만 상관계수 (ρ): ${d.spearmanR.toFixed(3)}\n`;
 
         const blob = new Blob([result_text], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);

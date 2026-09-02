@@ -13,6 +13,10 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- KaTeX (수식 렌더링) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
@@ -247,7 +251,7 @@
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
-                            <div class="stat-value mt-2" id="res-eq" style="font-size: 1.4rem;">y = 0</div>
+                            <div class="stat-value mt-2" id="res-eq" style="font-size: 1.3rem;">y = 0</div>
                             <p class="text-muted mt-2" style="font-size:0.7rem;">최소제곱법(Least Squares Method)을 이용해 오차가 가장 적은 최적의 식을 도출했습니다.</p>
                         </div>
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
@@ -262,20 +266,6 @@
                         </div>
                     </div>
 
-                    <!-- 상관계수 -->
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
-                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-arrow-trend-up"></i> 피어슨 상관계수 (r)</div>
-                            <div class="stat-value mt-2" id="res-pearson" style="font-size: 1.6rem;">0.000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-pearson-note">두 변수의 <b>선형적</b> 관계 방향과 강도 (-1 ~ 1)</p>
-                        </div>
-                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
-                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-arrow-trend-up"></i> 스피어만 상관계수 (ρ)</div>
-                            <div class="stat-value mt-2" id="res-spearman" style="font-size: 1.6rem;">0.000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-spearman-note">두 변수의 <b>순위(단조)</b> 관계 방향과 강도 (-1 ~ 1)</p>
-                        </div>
-                    </div>
-
                     <div id="interpretation-box"></div>
 
                     <!-- 차트 커스텀 옵션 -->
@@ -284,13 +274,16 @@
                             <h3 style="margin-bottom:0;"><i class="fa-solid fa-sliders"></i> 차트 꾸미기 옵션</h3>
                             <i class="fa-solid fa-chevron-down" id="chart-options-caret"></i>
                         </div>
-                        <div id="chart-options-body" class="hidden mt-4">
-                            <div class="grid-2">
+                        <div id="chart-options-body" class="hidden mt-3">
+                            <div class="grid-2 compact-grid">
                                 <div class="form-group">
                                     <label for="opt-title">차트 제목</label>
                                     <input type="text" id="opt-title" class="form-control" placeholder="자동 생성 (수식)">
                                 </div>
-                                <div class="form-group"></div>
+                                <div class="form-group">
+                                    <label for="opt-line-width">추세선 두께 (1~8)</label>
+                                    <input type="number" id="opt-line-width" class="form-control" value="3" min="1" max="8" step="1">
+                                </div>
                                 <div class="form-group">
                                     <label for="opt-xlabel">X축 라벨</label>
                                     <input type="text" id="opt-xlabel" class="form-control">
@@ -301,17 +294,12 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="opt-point-color">데이터 점 색상</label>
-                                    <input type="color" id="opt-point-color" class="form-control" value="#7c5cf0" style="padding: 0.2rem; height: 2.4rem;">
+                                    <input type="color" id="opt-point-color" class="form-control" value="#7c5cf0" style="padding: 0.2rem; height: 2.2rem;">
                                 </div>
                                 <div class="form-group">
                                     <label for="opt-line-color">추세선 색상</label>
-                                    <input type="color" id="opt-line-color" class="form-control" value="#e34d3f" style="padding: 0.2rem; height: 2.4rem;">
+                                    <input type="color" id="opt-line-color" class="form-control" value="#e34d3f" style="padding: 0.2rem; height: 2.2rem;">
                                 </div>
-                                <div class="form-group">
-                                    <label for="opt-line-width">추세선 두께 (1~8)</label>
-                                    <input type="number" id="opt-line-width" class="form-control" value="3" min="1" max="8" step="1">
-                                </div>
-                                <div class="form-group"></div>
                                 <div class="form-group">
                                     <label for="opt-xmin">X축 최소값 (비우면 자동)</label>
                                     <input type="number" id="opt-xmin" class="form-control" placeholder="자동" step="any">
@@ -329,7 +317,7 @@
                                     <input type="number" id="opt-ymax" class="form-control" placeholder="자동" step="any">
                                 </div>
                             </div>
-                            <button class="btn btn-primary" onclick="applyChartOptions()">
+                            <button class="btn btn-primary mt-2" onclick="applyChartOptions()">
                                 <i class="fa-solid fa-paintbrush"></i> 차트에 적용
                             </button>
                         </div>
@@ -358,8 +346,12 @@
             <div id="view-step3" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Step 3. 데이터 예측하기</h3>
-                    <p class="text-muted mb-4">가설 검증(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
-                    
+                    <p class="text-muted mb-3">가설 검증(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
+
+                    <div class="eq-display-box mb-3" id="predict-eq-latex"></div>
+
+                    <div id="predict-chart-container" class="mb-4" style="width: 100%; height: 420px; border-radius: var(--radius-sm); overflow:hidden;"></div>
+
                     <div class="form-group" style="max-width: 500px;">
                         <label id="predict-input-label" for="predictX">예측하고 싶은 독립변수 값을 입력하세요:</label>
                         <div class="flex gap-2">
@@ -384,14 +376,18 @@
             <div id="view-step4" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-square-root-variable"></i> Step 4. 정적분으로 구간 넓이 탐구하기</h3>
-                    <p class="text-muted mb-4">가설 검증(Step 2)에서 찾은 함수 <span id="integral-eq-preview" style="font-weight:600; color: var(--text-main);">y = f(x)</span> 를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값 <code>∫ₐᵇ f(x)dx</code>)를 계산하고 시각화합니다.</p>
+                    <p class="text-muted mb-3">가설 검증(Step 2)에서 찾은 함수를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산하고 시각화합니다.</p>
+
+                    <div class="eq-display-box mb-3" id="integral-eq-preview"></div>
+
+                    <div id="integral-chart-container" class="mb-4" style="width: 100%; height: 420px; border-radius: var(--radius-sm); overflow:hidden;"></div>
 
                     <div id="integral-domain-warning" class="alert alert-warning hidden">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <div><span id="integral-domain-warning-text"></span></div>
                     </div>
 
-                    <div class="grid-2" style="max-width: 600px;">
+                    <div class="grid-2 compact-grid" style="max-width: 600px;">
                         <div class="form-group">
                             <label for="integralA">구간 시작값 a</label>
                             <input type="number" id="integralA" class="form-control" placeholder="예: 0" step="any">
@@ -405,17 +401,16 @@
                         <i class="fa-solid fa-chart-area"></i> 정적분 계산 및 넓이 시각화
                     </button>
 
-                    <div id="integral-result-box" class="hidden mt-6">
-                        <div class="alert alert-success" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
+                    <div id="integral-result-box" class="hidden mt-4">
+                        <div class="alert alert-success" style="flex-direction: column; gap: 0.4rem; padding: 1.1rem 1.3rem;">
                             <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-calculator"></i> 계산 결과</div>
                             <div id="integral-method-note" style="font-size: 0.85rem; color: var(--text-muted);"></div>
-                            <div id="integral-formula-box" style="font-family: monospace; font-size: 0.9rem; color: var(--text-main); background: var(--bg-app); padding: 0.8rem; border-radius: var(--radius-sm); display:none;"></div>
-                            <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-main);">
-                                ∫ 의 값 (구간 [<span id="integral-a-val">0</span>, <span id="integral-b-val">0</span>]) ≈
-                                <strong id="integral-result-val" style="font-size: 1.8rem; color: var(--primary);">0</strong>
+                            <div id="integral-formula-box" class="eq-display-box" style="display:none;"></div>
+                            <div class="flex items-center gap-2" style="font-size: 1.1rem; font-weight: 500; color: var(--text-main); flex-wrap: wrap;">
+                                <span id="integral-notation-latex"></span>
+                                <strong id="integral-result-val" style="font-size: 1.7rem; color: var(--primary);">0</strong>
                             </div>
                         </div>
-                        <div id="integral-chart-container" class="mt-4" style="width: 100%; height: 420px; border-radius: var(--radius-sm); overflow:hidden;"></div>
                     </div>
                 </div>
             </div>
