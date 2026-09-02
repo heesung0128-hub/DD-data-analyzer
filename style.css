@@ -173,3 +173,57 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+        /* ===================== 모바일/태블릿 반응형 ===================== */
+        @media (max-width: 900px) {
+            body { overflow: auto; }
+            .app-container { flex-direction: column; min-height: auto; }
+
+            .app-sidebar {
+                width: 100%; flex-direction: row; align-items: center; flex-wrap: wrap;
+                padding: 0.8rem 1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            }
+            .brand-logo { margin-bottom: 0; padding: 0.2rem; }
+            .brand-logo .flex { margin-bottom: 0 !important; }
+            .brand-logo > div:last-child { display: none; } /* 학교 부제 텍스트 숨김 */
+
+            .nav-list {
+                flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 0.4rem;
+                flex-grow: 1; margin: 0 0.5rem;
+            }
+            .nav-item { padding: 0.6rem 0.8rem; font-size: 0.78rem; white-space: nowrap; flex-shrink: 0; }
+            .nav-item span, .nav-item br { display: none; }
+
+            .sidebar-footer { margin-top: 0; padding-top: 0; border-top: none; flex-shrink: 0; }
+            .sidebar-footer .btn-icon-label { width: auto; padding: 0.6rem 0.8rem; }
+            .sidebar-footer .btn-icon-label span { display: none; }
+
+            .app-content { height: auto; padding: 1.2rem; }
+            .content-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; margin-bottom: 1.5rem; }
+            h1 { font-size: 1.3rem; }
+
+            .grid-2 { grid-template-columns: 1fr; gap: 0.5rem; }
+            .card { padding: 1rem; }
+
+            #chart-container, #residual-chart-container, #integral-chart-container { height: 300px !important; }
+
+            /* 통계 카드 3열 → 1열 */
+            .content-body [style*="grid-template-columns: repeat(3, 1fr)"],
+            .content-body [style*="grid-template-columns: repeat(2, 1fr)"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* 헤더 내 flex 영역(제목 + 옵션 컨트롤)이 좁아져 글자가 세로로 깨지는 것 방지 */
+            .content-body .flex.justify-between.items-center {
+                flex-wrap: wrap;
+                gap: 0.6rem;
+            }
+            .content-body .flex.justify-between.items-center > div[style*="display: flex"] {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dropzone { padding: 1.8rem 1rem; }
+            .stat-value { font-size: 1.6rem; }
+        }

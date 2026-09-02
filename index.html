@@ -18,6 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -43,6 +44,9 @@
             </li>
             <li class="nav-item" id="nav-step3" onclick="switchView('step3')" style="pointer-events: none; opacity: 0.5;">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> 데이터 예측
+            </li>
+            <li class="nav-item" id="nav-step4" onclick="switchView('step4')" style="pointer-events: none; opacity: 0.5;">
+                <i class="fa-solid fa-square-root-variable"></i> 적분 탐구
             </li>
         </ul>
 
@@ -71,14 +75,14 @@
                         <h3><i class="fa-solid fa-file-csv"></i> Step 1. 데이터 파일 올리기</h3>
                         <!-- 인코딩 선택 -->
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span class="text-muted" style="font-size: 0.75rem;">한글이 깨질 경우 변경:</span>
+                            <span class="text-muted" style="font-size: 0.75rem;">한글이 깨질 경우 변경(CSV 전용):</span>
                             <select id="encoding-select" class="form-control" style="width: auto; padding: 0.3rem 0.5rem; font-size: 0.75rem;" onchange="reparseCurrentFile()">
                                 <option value="EUC-KR">EUC-KR (국내 엑셀 기본)</option>
                                 <option value="UTF-8">UTF-8</option>
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1.5rem; padding: 1rem;">
                         <i class="fa-solid fa-circle-info"></i>
                         <div style="width: 100%;">
@@ -98,12 +102,46 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                         <i class="fa-solid fa-cloud-arrow-up" id="dropzone-icon"></i>
                         <h4 id="dropzone-title">여기로 파일을 드래그하거나 클릭하세요</h4>
-                        <p class="text-muted mt-2" id="dropzone-desc">CSV 형식 지원</p>
-                        <input type="file" id="fileInput" accept=".csv" class="hidden">
+                        <p class="text-muted mt-2" id="dropzone-desc">CSV, 엑셀(.xlsx) 파일을 지원합니다</p>
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="hidden">
+                    </div>
+
+                    <!-- 클립보드 붙여넣기 -->
+                    <div class="mt-4">
+                        <div class="checkbox-wrapper" style="cursor:pointer;" onclick="togglePasteArea()">
+                            <i class="fa-solid fa-clipboard" style="color: var(--primary);"></i>
+                            <label style="cursor:pointer;">💡 엑셀/구글시트에서 표를 복사했다면? 여기에 바로 붙여넣기</label>
+                        </div>
+                        <div id="paste-area-wrapper" class="hidden mt-2">
+                            <textarea id="pasteArea" class="form-control" rows="4" placeholder="엑셀이나 구글 시트에서 표(헤더 포함)를 복사한 뒤 이 안을 클릭하고 Ctrl+V로 붙여넣으세요."></textarea>
+                            <button class="btn btn-primary mt-2" onclick="handlePastedData()">
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i> 붙여넣은 데이터 불러오기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 샘플 데이터셋 -->
+                <div class="card glass fade-in" style="padding: 1.2rem;">
+                    <h4 style="font-size: 0.95rem; margin-bottom: 0.2rem;"><i class="fa-solid fa-vial-circle-check"></i> 파일이 없다면? 샘플 데이터로 바로 체험해보기</h4>
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 0.8rem;">버튼을 누르면 예시 데이터가 바로 불러와집니다. 서로 다른 함수 유형을 연습해보세요.</p>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="loadSampleDataset('sleep')">
+                            <i class="fa-solid fa-bed"></i> 수면시간 vs 학업성적 (선형)
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadSampleDataset('temp')">
+                            <i class="fa-solid fa-temperature-half"></i> 기온 vs 음료 판매량 (2차)
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadSampleDataset('height')">
+                            <i class="fa-solid fa-shoe-prints"></i> 키 vs 발 크기 (선형)
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadSampleDataset('bacteria')">
+                            <i class="fa-solid fa-bacterium"></i> 시간 vs 세균 수 (지수)
+                        </button>
                     </div>
                 </div>
 
@@ -162,14 +200,23 @@
                     </div>
 
                     <div class="form-group mt-4">
-                        <label for="trendModel">데이터 관계 모델링 (함수 선택)</label>
-                        <select id="trendModel" class="form-control">
+                        <div class="flex justify-between items-center">
+                            <label for="trendModel" style="margin-bottom: 0;">데이터 관계 모델링 (함수 선택)</label>
+                            <button class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;" onclick="runAutoRecommend()">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> 최적 모델 자동 추천
+                            </button>
+                        </div>
+                        <select id="trendModel" class="form-control mt-2">
                             <option value="linear">1. 선형 함수 (Linear: y = ax + b)</option>
                             <option value="exponential">2. 지수 함수 (Exponential: y = a · e^bx)</option>
                             <option value="logarithmic">3. 로그 함수 (Logarithmic: y = a + b · ln(x))</option>
-                            <option value="polynomial">4. 2차 다항 함수 (Polynomial: y = ax² + bx + c)</option>
+                            <option value="poly2">4. 2차 다항 함수 (Quadratic: y = ax² + bx + c)</option>
+                            <option value="poly3">5. 3차 다항 함수 (Cubic: y = ax³ + bx² + cx + d)</option>
+                            <option value="poly4">6. 4차 다항 함수 (Quartic: y = ax⁴ + bx³ + cx² + dx + e)</option>
                         </select>
-                        
+
+                        <div id="auto-recommend-box" class="hidden mt-3"></div>
+
                         <!-- X축 영점 조절 체크박스 -->
                         <div class="checkbox-wrapper" onclick="document.getElementById('zeroPointAdjust').click()">
                             <input type="checkbox" id="zeroPointAdjust" onclick="event.stopPropagation()">
@@ -178,7 +225,7 @@
                             </label>
                         </div>
                     </div>
-                    
+
                     <div class="mt-6 flex justify-between items-center" id="analyze-action">
                         <span class="text-muted">설정을 완료했다면 분석을 시작하세요.</span>
                         <button class="btn btn-primary" onclick="runAnalysis()">
@@ -197,7 +244,7 @@
                     </div>
 
                     <!-- 통계 수치 표시 영역 -->
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                             <div class="stat-value mt-2" id="res-eq" style="font-size: 1.4rem;">y = 0</div>
@@ -206,7 +253,7 @@
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-bullseye"></i> 설명력 (결정계수 R²)</div>
                             <div class="stat-value mt-2" id="res-r2">0.0000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;">1에 가까울수록 함수가 데이터를 정확히 설명함</p>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-r2-note">1에 가까울수록 함수가 데이터를 정확히 설명함</p>
                         </div>
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-percent"></i> 통계적 유의성 (p-value, 선형 기준)</div>
@@ -215,13 +262,89 @@
                         </div>
                     </div>
 
+                    <!-- 상관계수 -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
+                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-arrow-trend-up"></i> 피어슨 상관계수 (r)</div>
+                            <div class="stat-value mt-2" id="res-pearson" style="font-size: 1.6rem;">0.000</div>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-pearson-note">두 변수의 <b>선형적</b> 관계 방향과 강도 (-1 ~ 1)</p>
+                        </div>
+                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
+                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-arrow-trend-up"></i> 스피어만 상관계수 (ρ)</div>
+                            <div class="stat-value mt-2" id="res-spearman" style="font-size: 1.6rem;">0.000</div>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-spearman-note">두 변수의 <b>순위(단조)</b> 관계 방향과 강도 (-1 ~ 1)</p>
+                        </div>
+                    </div>
+
                     <div id="interpretation-box"></div>
+
+                    <!-- 차트 커스텀 옵션 -->
+                    <div class="card glass mt-6" style="background: var(--bg-app);">
+                        <div class="flex justify-between items-center" style="cursor:pointer;" onclick="toggleChartOptions()">
+                            <h3 style="margin-bottom:0;"><i class="fa-solid fa-sliders"></i> 차트 꾸미기 옵션</h3>
+                            <i class="fa-solid fa-chevron-down" id="chart-options-caret"></i>
+                        </div>
+                        <div id="chart-options-body" class="hidden mt-4">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label for="opt-title">차트 제목</label>
+                                    <input type="text" id="opt-title" class="form-control" placeholder="자동 생성 (수식)">
+                                </div>
+                                <div class="form-group"></div>
+                                <div class="form-group">
+                                    <label for="opt-xlabel">X축 라벨</label>
+                                    <input type="text" id="opt-xlabel" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-ylabel">Y축 라벨</label>
+                                    <input type="text" id="opt-ylabel" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-point-color">데이터 점 색상</label>
+                                    <input type="color" id="opt-point-color" class="form-control" value="#7c5cf0" style="padding: 0.2rem; height: 2.4rem;">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-line-color">추세선 색상</label>
+                                    <input type="color" id="opt-line-color" class="form-control" value="#e34d3f" style="padding: 0.2rem; height: 2.4rem;">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-line-width">추세선 두께 (1~8)</label>
+                                    <input type="number" id="opt-line-width" class="form-control" value="3" min="1" max="8" step="1">
+                                </div>
+                                <div class="form-group"></div>
+                                <div class="form-group">
+                                    <label for="opt-xmin">X축 최소값 (비우면 자동)</label>
+                                    <input type="number" id="opt-xmin" class="form-control" placeholder="자동" step="any">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-xmax">X축 최대값 (비우면 자동)</label>
+                                    <input type="number" id="opt-xmax" class="form-control" placeholder="자동" step="any">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-ymin">Y축 최소값 (비우면 자동)</label>
+                                    <input type="number" id="opt-ymin" class="form-control" placeholder="자동" step="any">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opt-ymax">Y축 최대값 (비우면 자동)</label>
+                                    <input type="number" id="opt-ymax" class="form-control" placeholder="자동" step="any">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyChartOptions()">
+                                <i class="fa-solid fa-paintbrush"></i> 차트에 적용
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- 차트 -->
                     <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
                     <p class="text-muted mb-4">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
                     <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
-                    
+
+                    <!-- 잔차 그래프 -->
+                    <h3 class="mt-6"><i class="fa-solid fa-ruler-combined"></i> 잔차(Residual) 그래프</h3>
+                    <p class="text-muted mb-4">실제값과 예측값의 차이(오차)를 보여줍니다. 점들이 0을 기준으로 특별한 규칙 없이 흩어져 있을수록 모델이 데이터를 잘 설명하는 것입니다.</p>
+                    <div id="residual-chart-container" style="width: 100%; height: 320px; border-radius: var(--radius-sm); overflow:hidden;"></div>
+
                     <div class="mt-6 flex justify-between items-center">
                         <span class="text-muted">도출된 수학 모델을 바탕으로 데이터를 예측해볼 수 있습니다.</span>
                         <button class="btn btn-primary" onclick="proceedToStep3()">
@@ -253,6 +376,46 @@
                             입력한 <strong id="pred-x-name" style="color: var(--primary);">독립변수</strong> 값이 <strong id="pred-x-val">0</strong>일 때, <br>
                             예측되는 <strong id="pred-y-name" style="color: var(--danger);">종속변수</strong> 값은 <strong id="pred-y-val" style="font-size: 1.8rem; color: var(--primary);">0</strong> 입니다.
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW 4: 적분 탐구 ================= -->
+            <div id="view-step4" class="hidden fade-in">
+                <div class="card glass">
+                    <h3><i class="fa-solid fa-square-root-variable"></i> Step 4. 정적분으로 구간 넓이 탐구하기</h3>
+                    <p class="text-muted mb-4">가설 검증(Step 2)에서 찾은 함수 <span id="integral-eq-preview" style="font-weight:600; color: var(--text-main);">y = f(x)</span> 를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값 <code>∫ₐᵇ f(x)dx</code>)를 계산하고 시각화합니다.</p>
+
+                    <div id="integral-domain-warning" class="alert alert-warning hidden">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <div><span id="integral-domain-warning-text"></span></div>
+                    </div>
+
+                    <div class="grid-2" style="max-width: 600px;">
+                        <div class="form-group">
+                            <label for="integralA">구간 시작값 a</label>
+                            <input type="number" id="integralA" class="form-control" placeholder="예: 0" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="integralB">구간 끝값 b</label>
+                            <input type="number" id="integralB" class="form-control" placeholder="예: 10" step="any">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="runIntegration()">
+                        <i class="fa-solid fa-chart-area"></i> 정적분 계산 및 넓이 시각화
+                    </button>
+
+                    <div id="integral-result-box" class="hidden mt-6">
+                        <div class="alert alert-success" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
+                            <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-calculator"></i> 계산 결과</div>
+                            <div id="integral-method-note" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+                            <div id="integral-formula-box" style="font-family: monospace; font-size: 0.9rem; color: var(--text-main); background: var(--bg-app); padding: 0.8rem; border-radius: var(--radius-sm); display:none;"></div>
+                            <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-main);">
+                                ∫ 의 값 (구간 [<span id="integral-a-val">0</span>, <span id="integral-b-val">0</span>]) ≈
+                                <strong id="integral-result-val" style="font-size: 1.8rem; color: var(--primary);">0</strong>
+                            </div>
+                        </div>
+                        <div id="integral-chart-container" class="mt-4" style="width: 100%; height: 420px; border-radius: var(--radius-sm); overflow:hidden;"></div>
                     </div>
                 </div>
             </div>
