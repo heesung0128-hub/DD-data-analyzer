@@ -80,6 +80,23 @@
         if (activeNav) refreshChartsForView(activeNav.id.replace('nav-', ''));
     }
 
+    // --- HTML 이스케이프 (파일명/열 이름/셀 값을 innerHTML에 넣을 때 사용) ---
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // --- X축 영점 조절(평행이동) 값: 분석과 자동 추천이 같은 규칙을 쓰도록 공용화 ---
+    // 로그함수는 x - shift > 0 이어야 하므로 최솟값이 1이 되도록 이동하고, 그 외에는 최솟값이 0이 되도록 이동합니다.
+    function getShiftX(modelType, minX, useZeroAdjust) {
+        if (!useZeroAdjust) return 0;
+        return modelType === 'logarithmic' ? minX - 1 : minX;
+    }
+
     // --- 글로벌 변수 ---
     let globalData = [];
     let numericColumns = [];
@@ -119,7 +136,7 @@
 
     function handleFile(file) {
         if (!file) return;
-        updateDropzoneUI(`선택된 파일: <span style="color: var(--primary);">${file.name}</span>`);
+        updateDropzoneUI(`선택된 파일: <span style="color: var(--primary);">${escapeHtml(file.name)}</span>`);
 
         const ext = file.name.split('.').pop().toLowerCase();
 
@@ -193,25 +210,25 @@
         let label = '';
 
         if (name === 'sleep') {
-            label = '수면시간 vs 학업성적 샘플 (선형 관계 연습용)';
+            label = '수면시간 vs 학업성적 샘플 (연습용 가상 데이터, 선형 관계)';
             cols = ['수면시간', '학업성적'];
             raw = [[7.5,85],[6,72],[5.5,65],[8,90],[4.5,50],[7,80],[6.5,78],[5,60],[8.5,92],[6,70],
                    [7,82],[5.5,68],[6.5,75],[7.5,88],[5,62],[6,74],[8,86],[4,45],[7,81],[6.5,76],
                    [9,95],[5.8,71],[6.8,80],[7.2,84],[5.2,61],[6.2,73],[8.2,89],[4.8,58],[7.8,87],[6.4,72]];
         } else if (name === 'temp') {
-            label = '기온 vs 음료 판매량 샘플 (2차 함수 관계 연습용)';
+            label = '기온 vs 음료 판매량 샘플 (연습용 가상 데이터, 2차 함수 관계)';
             cols = ['기온(℃)', '음료_판매량(개)'];
             raw = [[2,20],[5,35],[8,55],[11,70],[14,95],[17,130],[20,170],[23,205],[26,240],[29,260],
                    [32,255],[35,230],[10,60],[15,105],[19,155],[22,195],[27,250],[30,262],[6,40],[13,88],
                    [18,140],[24,220],[28,258],[31,258],[9,58],[16,120],[21,180],[25,235],[12,80],[33,240]];
         } else if (name === 'height') {
-            label = '키 vs 발 크기 샘플 (선형 관계 연습용)';
+            label = '키 vs 발 크기 샘플 (연습용 가상 데이터, 선형 관계)';
             cols = ['키(cm)', '발_크기(mm)'];
             raw = [[150,225],[155,230],[158,232],[160,235],[162,238],[165,240],[168,243],[170,245],[172,248],[175,250],
                    [178,253],[180,255],[152,227],[157,231],[163,238],[167,242],[171,246],[174,249],[177,252],[159,234],
                    [161,236],[164,239],[169,244],[173,248],[176,251],[179,254],[156,230],[166,241],[181,256],[153,228]];
         } else if (name === 'bacteria') {
-            label = '경과시간 vs 세균 수 샘플 (지수 함수 관계 연습용)';
+            label = '경과시간 vs 세균 수 샘플 (연습용 가상 데이터, 지수 함수 관계)';
             cols = ['경과시간(시간)', '세균_수(마리)'];
             raw = [[0,50],[1,68],[2,90],[3,123],[4,166],[5,225],[6,300],[7,410],[8,545],
                    [9,735],[10,990],[11,1330],[12,1790],[13,2410],[14,3250]];
@@ -238,14 +255,14 @@
         const container = document.getElementById('table-container');
         let html = '<table><thead><tr>';
         const headers = Object.keys(data[0]);
-        headers.forEach(h => html += `<th>${h}</th>`);
+        headers.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
         html += '</tr></thead><tbody>';
 
         const rowsToShow = Math.min(data.length, 5);
         for(let i=0; i<rowsToShow; i++) {
             html += '<tr>';
             headers.forEach(h => {
-                html += `<td>${data[i][h] !== null ? data[i][h] : ''}</td>`;
+                html += `<td>${data[i][h] !== null && data[i][h] !== undefined ? escapeHtml(data[i][h]) : ''}</td>`;
             });
             html += '</tr>';
         }
@@ -451,28 +468,58 @@
     }
 
     // --- 모델 타입에 따라 회귀 결과 계산 (공용) ---
-    function fitModel(modelType, points) {
-        if(modelType === 'linear') {
-            return regression.linear(points, { precision: 4 });
-        } else if(modelType === 'exponential') {
-            return findGeneralizedExponential(points) || regression.exponential(points, { precision: 4 });
-        } else if(modelType === 'logarithmic') {
-            return findGeneralizedLogarithmic(points) || regression.logarithmic(points, { precision: 4 });
-        } else if(modelType === 'poly2') {
-            return regression.polynomial(points, { order: 2, precision: 4 });
-        } else if(modelType === 'poly3') {
-            return regression.polynomial(points, { order: 3, precision: 4 });
-        } else if(modelType === 'poly4') {
-            return regression.polynomial(points, { order: 4, precision: 4 });
+    // regression.js의 precision은 소수점 자릿수이므로 4로 두면 작은 계수(예: 4차항 -0.0009)가 반올림되어
+    // 적합도(R²)가 크게 낮아집니다. 계산은 높은 정밀도로 하고, 화면/보고서용 문자열만 유효숫자 4자리로 만듭니다.
+    const FIT_PRECISION = 12;
+
+    function formatFitString(reg, modelType) {
+        const eq = reg.equation;
+        const f = v => Number(v).toPrecision(4);
+        if (isPolynomialFamily(modelType)) {
+            const order = eq.length - 1;
+            let s = '';
+            eq.forEach((coef, i) => {
+                const power = order - i;
+                const term = power === 0 ? f(Math.abs(coef)) : `${f(Math.abs(coef))}x${power > 1 ? '^' + power : ''}`;
+                s += i === 0 ? (coef < 0 ? '-' : '') + term : ` ${coef < 0 ? '-' : '+'} ${term}`;
+            });
+            return s;
+        } else if (modelType === 'exponential') {
+            return `${f(eq[0])} e^(${f(eq[1])}x)`;
+        } else if (modelType === 'logarithmic') {
+            return `${f(eq[0])} ${eq[1] < 0 ? '-' : '+'} ${f(Math.abs(eq[1]))} ln(x)`;
         }
-        return null;
+        return reg.string;
+    }
+
+    function fitModel(modelType, points) {
+        let reg = null;
+        if(modelType === 'linear') {
+            reg = regression.linear(points, { precision: FIT_PRECISION });
+        } else if(modelType === 'exponential') {
+            return findGeneralizedExponential(points) || withFitString(regression.exponential(points, { precision: FIT_PRECISION }), modelType);
+        } else if(modelType === 'logarithmic') {
+            return findGeneralizedLogarithmic(points) || withFitString(regression.logarithmic(points, { precision: FIT_PRECISION }), modelType);
+        } else if(modelType === 'poly2') {
+            reg = regression.polynomial(points, { order: 2, precision: FIT_PRECISION });
+        } else if(modelType === 'poly3') {
+            reg = regression.polynomial(points, { order: 3, precision: FIT_PRECISION });
+        } else if(modelType === 'poly4') {
+            reg = regression.polynomial(points, { order: 4, precision: FIT_PRECISION });
+        }
+        return reg ? withFitString(reg, modelType) : null;
+    }
+
+    function withFitString(reg, modelType) {
+        reg.string = formatFitString(reg, modelType);
+        return reg;
     }
 
     function isPolynomialFamily(modelType) {
         return modelType === 'linear' || modelType === 'poly2' || modelType === 'poly3' || modelType === 'poly4';
     }
 
-    // --- 최적 모델 자동 추천 ---
+    // --- 모델 자동 추천 ---
     function runAutoRecommend() {
         const xCol = document.getElementById('xCol').value;
         const yCol = document.getElementById('yCol').value;
@@ -499,7 +546,9 @@
 
         const useZeroAdjust = document.getElementById('zeroPointAdjust').checked;
         const minXOriginal = Math.min(...validRows.map(r => r.x));
-        const shiftX = useZeroAdjust ? minXOriginal - 1 : 0;
+        // 6개 모델을 같은 데이터로 비교해야 하므로 로그함수 기준(x - shift > 0)으로 이동합니다.
+        // 로그를 제외한 모델의 R²는 평행이동에 영향을 받지 않아 실제 분석 결과와 같습니다.
+        const shiftX = getShiftX('logarithmic', minXOriginal, useZeroAdjust);
 
         // 6개 모델을 공정하게 비교하기 위해, 모든 모델에 공통으로 적용 가능한 데이터(x-shift>0, y>0)만 사용
         const commonPoints = [];
@@ -524,9 +573,10 @@
             try {
                 const reg = fitModel(type, commonPoints);
                 if (!reg || isNaN(reg.r2)) return;
-                const p = reg.equation.length; // 사용된 파라미터(계수) 개수
-                if (n - p - 1 <= 0) return; // 자유도 부족 시 비교 대상에서 제외
-                const adjR2 = 1 - (1 - reg.r2) * (n - 1) / (n - p - 1);
+                const p = reg.equation.length; // 사용된 파라미터(계수) 개수 (절편 포함)
+                // 조정 R² = 1 - (1-R²)(n-1)/(n-k-1), k = 절편을 뺀 설명변수 개수 = p - 1
+                if (n - p <= 0) return; // 자유도 부족 시 비교 대상에서 제외
+                const adjR2 = 1 - (1 - reg.r2) * (n - 1) / (n - p);
                 results.push({ type, r2: reg.r2, adjR2, p });
             } catch (e) { /* 해당 모델은 건너뜀 */ }
         });
@@ -691,11 +741,8 @@
 
         // 평행이동 처리 (영점 조절)
         const minXOriginal = Math.min(...validRows.map(r => r.x));
-        let shiftX = 0;
-        if (useZeroAdjust) {
-            // 로그함수는 x가 무조건 양수여야 하므로 시작점을 1로 맞춥니다.
-            shiftX = modelType === 'logarithmic' ? minXOriginal - 1 : minXOriginal;
-        }
+        // 로그함수는 x가 무조건 양수여야 하므로 시작점을 1로 맞춥니다.
+        const shiftX = getShiftX(modelType, minXOriginal, useZeroAdjust);
 
         let points = [];
         let xData = [];
@@ -786,7 +833,8 @@
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
                         <strong>강력한 설명력!</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 매우 높습니다. 선택하신 <b>[${MODEL_LABELS[modelType]}] 함수식</b>이 두 변수 간의 관계를 훌륭하게 설명하고 있습니다. 탐구 보고서에 이 함수식을 핵심 수학적 근거로 제시해 보세요!</p>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 매우 높습니다. 선택하신 <b>[${MODEL_LABELS[modelType]}] 함수식</b>이 두 변수 간의 관계를 잘 설명하고 있습니다. 탐구 보고서에 이 함수식을 핵심 수학적 근거로 제시해 보세요!</p>
+                        <p class="text-muted" style="font-size:0.8rem;">💡 Tip: 잔차 그래프에서 점들이 고르게 흩어져 있는지 함께 확인하면 근거가 더 탄탄해집니다.</p>
                     </div>
                 </div>`;
         } else if (r2 >= 0.4) {
@@ -795,7 +843,7 @@
                     <i class="fa-solid fa-chart-bar"></i>
                     <div>
                         <strong>유의미한 설명력</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 중간 정도입니다. 선택하신 함수식이 어느 정도 의미 있는 패턴을 보여주지만, 예외적인 데이터(오차)도 제법 존재합니다. 다른 추세선 모델을 적용했을 때 더 높아지는지 비교해 보세요.</p>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 중간 정도입니다. 선택하신 함수식이 어느 정도 의미 있는 패턴을 보여주지만, 함수식으로 설명되지 않는 데이터도 제법 존재합니다. 다른 추세선 모델을 적용했을 때 더 높아지는지 비교해 보세요.</p>
                     </div>
                 </div>`;
         } else {
@@ -804,7 +852,7 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <div>
                         <strong>설명력 부족</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 많이 낮습니다. 데이터가 선택한 함수식을 거의 따르지 않거나 다른 변수의 영향이 큽니다. 추세선 모델을 다른 함수(다항, 로그 등)로 변경해 보세요!</p>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 낮습니다. 데이터가 선택한 함수식과 잘 맞지 않거나, 다른 요인의 영향이 있을 수 있습니다. 추세선 모델을 다른 함수(다항, 로그 등)로 변경해 보세요!</p>
                     </div>
                 </div>`;
         }
@@ -910,7 +958,7 @@
         };
 
         const trendline = {
-            x: curveX, y: curveY, mode: 'lines', type: 'scatter', name: '예측 곡선',
+            x: curveX, y: curveY, mode: 'lines', type: 'scatter', name: '추세선',
             line: { color: overrides.lineColor || 'hsl(5, 75%, 55%)', dash: 'dash', width: overrides.lineWidth || 3 }
         };
 
@@ -997,11 +1045,21 @@
 
         const inputX = parseFloat(inputEl.value);
         if(!window.currentChartData || !window.currentChartData.regResult) {
-            alert("먼저 가설 검증 단계(Step 2)에서 분석을 완료해 주세요.");
+            alert("먼저 함수 모델링 단계(Step 2)에서 분석을 완료해 주세요.");
             return;
         }
 
-        const { regResult, shiftX, xLabel, yLabel } = window.currentChartData;
+        const { regResult, shiftX, xLabel, yLabel, xData } = window.currentChartData;
+
+        // 데이터 범위 밖 입력일 때만 참고 문구 표시
+        const rangeNote = document.getElementById('predict-range-note');
+        const dataMin = Math.min(...xData), dataMax = Math.max(...xData);
+        if (inputX < dataMin || inputX > dataMax) {
+            rangeNote.textContent = `입력값이 데이터 범위(${dataMin} ~ ${dataMax}) 밖이면 참고용으로만 봐 주세요.`;
+            rangeNote.classList.remove('hidden');
+        } else {
+            rangeNote.classList.add('hidden');
+        }
 
         let adjX = inputX - shiftX;
 
@@ -1054,7 +1112,7 @@
 
     function runIntegration() {
         if (!window.currentChartData || !window.currentChartData.regResult) {
-            alert("먼저 가설 검증 단계(Step 2)에서 분석을 완료해 주세요.");
+            alert("먼저 함수 모델링 단계(Step 2)에서 분석을 완료해 주세요.");
             return;
         }
         const inputAEl = document.getElementById('integralA');
@@ -1117,6 +1175,14 @@
         renderLatex(document.getElementById('integral-notation-latex'), `\\int_{${lo}}^{${hi}} f(x)\\,dx ${isPolynomialFamily(modelType) ? '=' : '\\approx'}`);
         document.getElementById('integral-result-val').textContent = integralValue.toFixed(4);
 
+        const signNote = document.getElementById('integral-sign-note');
+        if (integralValue < 0) {
+            signNote.textContent = '결과가 음수예요. 이 구간에서는 곡선이 x축 아래에 있어서 정적분 값이 음수로 나옵니다.';
+            signNote.classList.remove('hidden');
+        } else {
+            signNote.classList.add('hidden');
+        }
+
         renderIntegralChart(lo, hi);
     }
 
@@ -1171,17 +1237,17 @@
         const r2Val = document.getElementById('res-r2').textContent;
         const modelType = document.getElementById('trendModel').options[document.getElementById('trendModel').selectedIndex].text;
 
-        let result_text = `==== 동덕여고 데이터 기반 가설 탐구 결과 레포트 ====\n\n`;
+        let result_text = `==== 동덕여고 데이터 기반 탐구 결과 보고서 ====\n\n`;
         result_text += `[분석 변수]\n- 독립변수(X): ${xCol}\n- 종속변수(Y): ${yCol}\n\n`;
         result_text += `[분석 모델]\n- ${modelType}\n\n`;
         result_text += `[도출된 수식]\n- y = ${d.equation}\n\n`;
         result_text += `[통계 검증]\n- 설명력 (R²): ${r2Val}\n`;
-        result_text += `  (1에 가까울수록 함수가 데이터를 잘 설명함)\n`;
+        result_text += `  (1에 가까울수록 함수가 데이터를 더 잘 설명함)\n`;
 
         const blob = new Blob([result_text], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = "가설검증_결과_레포트.txt";
+        a.href = url; a.download = "함수모델링_결과_보고서.txt";
         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
 

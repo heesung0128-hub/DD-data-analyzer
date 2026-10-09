@@ -20,7 +20,7 @@
 
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jstat@1.9.6/dist/jstat.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -37,7 +37,7 @@
                 <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
                 <div class="brand-title">Data<br>Analyzer</div>
             </div>
-            <div style="font-size: 0.8rem; color: hsla(0,0%,100%,0.5); font-weight: 500; letter-spacing: -0.3px;">동덕여고 데이터 기반 가설 탐구</div>
+            <div style="font-size: 0.8rem; color: hsla(0,0%,100%,0.5); font-weight: 500; letter-spacing: -0.3px;">동덕여고 데이터 기반 탐구</div>
         </div>
 
         <ul class="nav-list">
@@ -45,7 +45,7 @@
                 <i class="fa-solid fa-file-import"></i> 데이터 입력
             </li>
             <li class="nav-item" id="nav-step2" onclick="switchView('step2')" style="pointer-events: none; opacity: 0.5;">
-                <i class="fa-solid fa-flask"></i> 가설 검증
+                <i class="fa-solid fa-flask"></i> 함수 모델링
             </li>
             <li class="nav-item" id="nav-step3" onclick="switchView('step3')" style="pointer-events: none; opacity: 0.5;">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> 데이터 예측
@@ -66,8 +66,8 @@
     <main class="app-content">
         <header class="content-header">
             <div>
-                <h1>탐구 데이터 분석 도구 (Easy Data Analyzer) 🔬</h1>
-                <p class="text-muted mt-2">두 변수 간에 어떤 관계가 있는지 과학적으로 분석해 보세요.</p>
+                <h1>탐구 데이터 분석 도구 (Easy Data Analyzer) 📈</h1>
+                <p class="text-muted mt-2">두 변수 사이의 관계를 함수로 나타내 보세요.</p>
             </div>
         </header>
 
@@ -106,7 +106,7 @@
                         </div>
                         <div class="info-col">
                             <strong><i class="fa-solid fa-bolt" style="color: var(--primary);"></i> 빠르게 시작하기</strong>
-                            <p class="mt-2" style="font-size: 0.82rem; color: var(--text-main);">파일이 없다면 샘플로 바로 체험하거나, 공공 데이터에서 탐구 주제를 찾아보세요.</p>
+                            <p class="mt-2" style="font-size: 0.82rem; color: var(--text-main);">파일이 없다면 샘플로 바로 체험하거나, 공공 데이터에서 탐구 주제를 찾아보세요. (샘플은 연습용 가상 데이터입니다)</p>
                             <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem;">
                                 <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('sleep')">수면-성적</button>
                                 <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('temp')">기온-판매량</button>
@@ -151,14 +151,14 @@
                     <div class="flex justify-between items-center">
                         <h3>👀 데이터 미리보기</h3>
                         <button class="btn btn-primary" onclick="proceedToStep2()">
-                            다음 단계: 가설 검증하기 <i class="fa-solid fa-arrow-right"></i>
+                            다음 단계: 함수 모델링하기 <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
                     <div class="table-container mt-4" id="table-container"></div>
                 </div>
             </div>
 
-            <!-- ================= VIEW 2: 가설 검증 ================= -->
+            <!-- ================= VIEW 2: 함수 모델링 ================= -->
             <div id="view-step2" class="hidden fade-in">
                 <!-- Step 2: 변수 및 추세선 모델 선택 -->
                 <div class="card glass" id="step2-card">
@@ -174,11 +174,11 @@
 
                     <div id="col-selectors" class="grid-2 mt-4">
                         <div class="form-group">
-                            <label for="xCol">독립변수 (원인): 무엇이 결과에 영향을 주나요?</label>
+                            <label for="xCol">독립변수 (X, 바꿔 보는 값): 무엇이 결과에 영향을 주나요?</label>
                             <select id="xCol" class="form-control"></select>
                         </div>
                         <div class="form-group">
-                            <label for="yCol">종속변수 (결과): 어떤 변화를 관찰하고 싶나요?</label>
+                            <label for="yCol">종속변수 (Y, 관찰하는 값): 어떤 변화를 관찰하고 싶나요?</label>
                             <select id="yCol" class="form-control"></select>
                         </div>
                     </div>
@@ -195,7 +195,7 @@
                         <div class="flex justify-between items-center">
                             <label for="trendModel" style="margin-bottom: 0;">데이터 관계 모델링 (함수 선택)</label>
                             <button class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;" onclick="runAutoRecommend()">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> 최적 모델 자동 추천
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> 모델 자동 추천
                             </button>
                         </div>
                         <select id="trendModel" class="form-control mt-2">
@@ -221,7 +221,7 @@
                 <!-- Step 3: 분석 결과 -->
                 <div class="card glass hidden fade-in" id="result-card">
                     <div class="flex justify-between items-center mb-6">
-                        <h3><i class="fa-solid fa-square-poll-vertical"></i> 분석 결과 레포트</h3>
+                        <h3><i class="fa-solid fa-square-poll-vertical"></i> 분석 결과 보고서</h3>
                         <button class="btn btn-secondary" onclick="downloadReport()">
                             <i class="fa-solid fa-download"></i> 요약 다운로드
                         </button>
@@ -232,17 +232,17 @@
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                             <div class="stat-value mt-2" id="res-eq" style="font-size: 1.3rem;">y = 0</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;">최소제곱법(Least Squares Method)을 이용해 오차가 가장 적은 최적의 식을 도출했습니다.</p>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;">최소제곱법(Least Squares Method)을 이용해 데이터에 가장 가까운 식을 구했습니다.</p>
                         </div>
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-bullseye"></i> 설명력 (결정계수 R²)</div>
                             <div class="stat-value mt-2" id="res-r2">0.0000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-r2-note">1에 가까울수록 함수가 데이터를 정확히 설명함</p>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-r2-note">1에 가까울수록 함수가 데이터를 더 잘 설명함</p>
                         </div>
                         <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
                             <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-percent"></i> 통계적 유의성 (p-value, 선형 기준)</div>
                             <div class="stat-value mt-2" id="res-p">0.0000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;">(참고용) 0.05 미만일 경우 뚜렷한 선형적 관계가 입증됨</p>
+                            <p class="text-muted mt-2" style="font-size:0.7rem;">(참고용) 0.05 미만이면 두 변수 사이에 뚜렷한 선형 관계가 있다고 볼 수 있어요</p>
                         </div>
                     </div>
 
@@ -315,6 +315,11 @@
                     <p class="text-muted mb-4">실제값과 예측값의 차이(오차)를 보여줍니다. 점들이 0을 기준으로 특별한 규칙 없이 흩어져 있을수록 모델이 데이터를 잘 설명하는 것입니다.</p>
                     <div id="residual-chart-container" style="width: 100%; height: 320px; border-radius: var(--radius-sm); overflow:hidden;"></div>
 
+                    <details class="mt-4 text-muted" style="font-size: 0.82rem; line-height: 1.6;">
+                        <summary style="cursor:pointer;">📘 결과를 보고서에 쓸 때 참고하세요</summary>
+                        <p class="mt-2">R²가 높다는 것은 "두 변수가 함께 변한다"는 뜻입니다. 그 이유(원인)까지 밝히려면 보고서에서 실험 설계나 근거를 함께 설명해 주세요.</p>
+                    </details>
+
                     <div class="mt-6 flex justify-between items-center">
                         <span class="text-muted">도출된 수학 모델을 바탕으로 데이터를 예측해볼 수 있습니다.</span>
                         <button class="btn btn-primary" onclick="proceedToStep3()">
@@ -328,7 +333,7 @@
             <div id="view-step3" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Step 3. 데이터 예측하기</h3>
-                    <p class="text-muted" style="margin-bottom: 1.2rem;">가설 검증(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">함수 모델링(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
 
                     <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                     <div class="eq-display-box mb-3" id="predict-eq-latex"></div>
@@ -345,6 +350,8 @@
                         </div>
                     </div>
 
+                    <p id="predict-range-note" class="text-muted hidden mt-3" style="font-size: 0.8rem;" aria-live="polite"></p>
+
                     <div id="predict-result-box" class="hidden mt-6 alert alert-success" aria-live="polite" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
                         <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-chart-line"></i> 예측 결과</div>
                         <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-main);">
@@ -359,7 +366,7 @@
             <div id="view-step4" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-square-root-variable"></i> Step 4. 정적분으로 구간 넓이 탐구하기</h3>
-                    <p class="text-muted" style="margin-bottom: 1.2rem;">가설 검증(Step 2)에서 찾은 함수를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산하고 시각화합니다.</p>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">함수 모델링(Step 2)에서 찾은 함수를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산하고 시각화합니다.</p>
 
                     <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                     <div class="eq-display-box mb-3" id="integral-eq-preview"></div>
@@ -389,6 +396,7 @@
                         <div class="alert alert-success" style="flex-direction: column; gap: 0.4rem; padding: 1.1rem 1.3rem;">
                             <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-calculator"></i> 계산 결과</div>
                             <div id="integral-method-note" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+                            <div id="integral-sign-note" class="hidden" style="font-size: 0.85rem; color: var(--text-muted);"></div>
                             <div id="integral-formula-box" class="eq-display-box" style="display:none;"></div>
                             <div class="flex items-center gap-2" style="font-size: 1.1rem; font-weight: 500; color: var(--text-main); flex-wrap: wrap;">
                                 <span id="integral-notation-latex"></span>
