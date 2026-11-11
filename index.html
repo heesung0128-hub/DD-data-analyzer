@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" id="theme-color-meta" content="#f4f5fa">
-    <title>수학/과학 탐구용 데이터 분석기</title>
+    <meta name="theme-color" id="theme-color-meta" content="#f7f7f7">
+    <title>동덕여고 탐구 데이터 분석기</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,9 +35,8 @@
         <div class="brand-logo">
             <div class="flex items-center" style="gap: 1rem; margin-bottom: 0.8rem;">
                 <div class="brand-icon"><i class="fa-solid fa-chart-pie"></i></div>
-                <div class="brand-title">Data<br>Analyzer</div>
+                <div class="brand-title">동덕여고<br>데이터 분석기</div>
             </div>
-            <div style="font-size: 0.8rem; color: hsla(0,0%,100%,0.5); font-weight: 500; letter-spacing: -0.3px;">동덕여고 데이터 기반 탐구</div>
         </div>
 
         <ul class="nav-list">
@@ -48,7 +47,7 @@
                 <i class="fa-solid fa-flask"></i> 함수 모델링
             </li>
             <li class="nav-item" id="nav-step3" onclick="switchView('step3')" style="pointer-events: none; opacity: 0.5;">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> 데이터 예측
+                <i class="fa-solid fa-arrow-trend-up"></i> 데이터 예측
             </li>
             <li class="nav-item" id="nav-step4" onclick="switchView('step4')" style="pointer-events: none; opacity: 0.5;">
                 <i class="fa-solid fa-square-root-variable"></i> 적분 탐구
@@ -66,7 +65,7 @@
     <main class="app-content">
         <header class="content-header">
             <div>
-                <h1>탐구 데이터 분석 도구 (Easy Data Analyzer) 📈</h1>
+                <h1>동덕여고 탐구 데이터 분석기</h1>
                 <p class="text-muted mt-2">두 변수 사이의 관계를 함수로 나타내 보세요.</p>
             </div>
         </header>
@@ -88,42 +87,6 @@
                         </div>
                     </div>
 
-                    <div class="grid-2 compact-grid mb-3" style="align-items: stretch;">
-                        <div class="info-col">
-                            <strong><i class="fa-solid fa-circle-info" style="color: var(--info);"></i> 데이터 파일 구조 안내</strong>
-                            <p class="mt-2" style="font-size: 0.82rem; color: var(--text-main);">
-                                • 첫 줄에는 변수 이름(예: 수면시간, 성적), 둘째 줄부터는 <b>숫자형 데이터</b>를 넣어주세요.
-                            </p>
-                            <div style="background: var(--bg-card); border: 1px solid var(--border-glass); padding: 0.7rem; border-radius: var(--radius-sm); margin-top: 0.6rem; font-family: monospace; font-size: 0.78rem; color: var(--text-muted); position: relative;">
-                                수면시간,학업성적<br>
-                                7.5,85<br>
-                                6,72<br>
-                                ...
-                            </div>
-                            <button class="btn btn-secondary mt-2" style="padding: 0.35rem 0.7rem; font-size: 0.75rem;" onclick="downloadSampleCSV()">
-                                <i class="fa-solid fa-download"></i> 예시 양식 다운로드
-                            </button>
-                        </div>
-                        <div class="info-col">
-                            <strong><i class="fa-solid fa-bolt" style="color: var(--primary);"></i> 빠르게 시작하기</strong>
-                            <p class="mt-2" style="font-size: 0.82rem; color: var(--text-main);">파일이 없다면 샘플로 바로 체험하거나, 공공 데이터에서 탐구 주제를 찾아보세요. (샘플은 연습용 가상 데이터입니다)</p>
-                            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem;">
-                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('sleep')">수면-성적</button>
-                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('temp')">기온-판매량</button>
-                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('height')">키-발크기</button>
-                                <button class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadSampleDataset('bacteria')">시간-세균수</button>
-                            </div>
-                            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem;">
-                                <a href="https://kosis.kr/index/index.do" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; text-decoration: none;">
-                                    <i class="fa-solid fa-link"></i> KOSIS
-                                </a>
-                                <a href="https://www.data.go.kr/" target="_blank" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; text-decoration: none;">
-                                    <i class="fa-solid fa-link"></i> 공공데이터포털
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="파일 업로드 영역, 클릭 또는 드래그하여 파일 선택" onclick="document.getElementById('fileInput').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                         <i class="fa-solid fa-cloud-arrow-up" id="dropzone-icon"></i>
                         <h4 id="dropzone-title">여기로 파일을 드래그하거나 클릭하세요</h4>
@@ -135,7 +98,7 @@
                     <div class="mt-4">
                         <div class="checkbox-wrapper" role="button" tabindex="0" style="cursor:pointer;" onclick="togglePasteArea()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                             <i class="fa-solid fa-clipboard" style="color: var(--primary);"></i>
-                            <label style="cursor:pointer;">💡 엑셀/구글시트에서 표를 복사했다면? 여기에 바로 붙여넣기</label>
+                            <label style="cursor:pointer;">엑셀·구글 시트에서 복사한 표 붙여넣기</label>
                         </div>
                         <div id="paste-area-wrapper" class="hidden mt-2">
                             <textarea id="pasteArea" class="form-control" rows="4" aria-label="엑셀/구글시트에서 복사한 표 데이터 붙여넣기" placeholder="엑셀이나 구글 시트에서 표(헤더 포함)를 복사한 뒤 이 안을 클릭하고 Ctrl+V로 붙여넣으세요."></textarea>
@@ -144,12 +107,28 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="mt-4">
+                        <p class="help-line">첫 줄은 변수 이름, 둘째 줄부터 숫자
+                            <button class="btn btn-secondary" onclick="downloadSampleCSV()"><i class="fa-solid fa-download"></i> 예시 양식</button>
+                        </p>
+                        <p class="help-line">연습용 가상 데이터:
+                            <button class="btn btn-secondary" onclick="loadSampleDataset('sleep')">수면-성적</button>
+                            <button class="btn btn-secondary" onclick="loadSampleDataset('temp')">기온-판매량</button>
+                            <button class="btn btn-secondary" onclick="loadSampleDataset('height')">키-발크기</button>
+                            <button class="btn btn-secondary" onclick="loadSampleDataset('bacteria')">시간-세균수</button>
+                        </p>
+                        <p class="help-line">공개 데이터 찾기:
+                            <a href="https://kosis.kr/index/index.do" target="_blank" rel="noopener" class="btn btn-secondary"><i class="fa-solid fa-link"></i> KOSIS</a>
+                            <a href="https://www.data.go.kr/" target="_blank" rel="noopener" class="btn btn-secondary"><i class="fa-solid fa-link"></i> 공공데이터포털</a>
+                        </p>
+                    </div>
                 </div>
 
                 <!-- 데이터 미리보기 -->
                 <div class="card glass hidden fade-in" id="preview-card">
                     <div class="flex justify-between items-center">
-                        <h3>👀 데이터 미리보기</h3>
+                        <h3><i class="fa-solid fa-table"></i> 데이터 미리보기</h3>
                         <button class="btn btn-primary" onclick="proceedToStep2()">
                             다음 단계: 함수 모델링하기 <i class="fa-solid fa-arrow-right"></i>
                         </button>
@@ -168,7 +147,7 @@
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <div>
                             <strong>숫자형 데이터 부족</strong>
-                            <p class="text-muted">상관관계를 분석하려면 숫자로 된 열이 최소 2개 이상 필요합니다. 데이터 입력을 다시 확인해주세요.</p>
+                            <p class="text-muted">함수를 찾으려면 숫자로 된 열이 2개 이상 필요합니다. 데이터 파일을 다시 확인해 주세요.</p>
                         </div>
                     </div>
 
@@ -187,7 +166,7 @@
                     <div class="checkbox-wrapper mt-4" role="button" tabindex="0" onclick="document.getElementById('zeroPointAdjust').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                         <input type="checkbox" id="zeroPointAdjust" onclick="event.stopPropagation()">
                         <label for="zeroPointAdjust">
-                            💡 X축 영점 조절 켜기 (연도 등 숫자가 큰 데이터일 때 오류를 방지합니다 — 모델별 R²에 영향을 주므로 먼저 결정하세요)
+                            X축 영점 조절 켜기: 연도처럼 큰 숫자일 때 계산 오류를 막습니다. 모델별 R²가 달라지므로 모델을 고르기 전에 정하세요.
                         </label>
                     </div>
 
@@ -195,25 +174,24 @@
                         <div class="flex justify-between items-center">
                             <label for="trendModel" style="margin-bottom: 0;">데이터 관계 모델링 (함수 선택)</label>
                             <button class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;" onclick="runAutoRecommend()">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i> 모델 자동 추천
+                                <i class="fa-solid fa-list-check"></i> 모델 자동 추천
                             </button>
                         </div>
                         <select id="trendModel" class="form-control mt-2">
-                            <option value="linear">1. 선형 함수 (Linear: y = ax + b)</option>
-                            <option value="exponential">2. 지수 함수 (Exponential: y = a · e^bx)</option>
-                            <option value="logarithmic">3. 로그 함수 (Logarithmic: y = a + b · ln(x))</option>
-                            <option value="poly2">4. 2차 다항 함수 (Quadratic: y = ax² + bx + c)</option>
-                            <option value="poly3">5. 3차 다항 함수 (Cubic: y = ax³ + bx² + cx + d)</option>
-                            <option value="poly4">6. 4차 다항 함수 (Quartic: y = ax⁴ + bx³ + cx² + dx + e)</option>
+                            <option value="linear">1. 선형 함수 (y = ax + b)</option>
+                            <option value="exponential">2. 지수 함수 (y = a · e^bx)</option>
+                            <option value="logarithmic">3. 로그 함수 (y = a + b · ln(x))</option>
+                            <option value="poly2">4. 2차 다항 함수 (y = ax² + bx + c)</option>
+                            <option value="poly3">5. 3차 다항 함수 (y = ax³ + bx² + cx + d)</option>
+                            <option value="poly4">6. 4차 다항 함수 (y = ax⁴ + bx³ + cx² + dx + e)</option>
                         </select>
 
                         <div id="auto-recommend-box" class="hidden mt-3" aria-live="polite"></div>
                     </div>
 
-                    <div class="mt-6 flex justify-between items-center" id="analyze-action">
-                        <span class="text-muted">설정을 완료했다면 분석을 시작하세요.</span>
+                    <div class="mt-6 flex items-center" id="analyze-action" style="justify-content: flex-end;">
                         <button class="btn btn-primary" onclick="runAnalysis()">
-                            <i class="fa-solid fa-rocket"></i> 데이터 분석 시작!
+                            <i class="fa-solid fa-play"></i> 분석하기
                         </button>
                     </div>
                 </div>
@@ -227,29 +205,23 @@
                         </button>
                     </div>
 
-                    <!-- 통계 수치 표시 영역 -->
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
-                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
-                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
-                            <div class="stat-value mt-2" id="res-eq" style="font-size: 1.3rem;">y = 0</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;">최소제곱법(Least Squares Method)을 이용해 데이터에 가장 가까운 식을 구했습니다.</p>
+                    <div class="stat-line">
+                        <div>
+                            <div class="stat-label">결정계수 R²</div>
+                            <div class="stat-value" id="res-r2">0.0000</div>
+                            <div class="stat-note" id="res-r2-note">1에 가까울수록 함수가 데이터를 잘 설명합니다</div>
                         </div>
-                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
-                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-bullseye"></i> 설명력 (결정계수 R²)</div>
-                            <div class="stat-value mt-2" id="res-r2">0.0000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;" id="res-r2-note">1에 가까울수록 함수가 데이터를 더 잘 설명함</p>
-                        </div>
-                        <div class="card glass" style="margin-bottom:0; background:var(--bg-app); padding: 1rem;">
-                            <div class="text-muted" style="font-size: 0.8rem;"><i class="fa-solid fa-percent"></i> 통계적 유의성 (p-value, 선형 기준)</div>
-                            <div class="stat-value mt-2" id="res-p">0.0000</div>
-                            <p class="text-muted mt-2" style="font-size:0.7rem;">(참고용) 0.05 미만이면 두 변수 사이에 뚜렷한 선형 관계가 있다고 볼 수 있어요</p>
+                        <div>
+                            <div class="stat-label">p-value (선형 기준, 참고용)</div>
+                            <div class="stat-value" id="res-p">0.0000</div>
+                            <div class="stat-note">0.05 미만이면 뚜렷한 선형 관계가 있다고 봅니다</div>
                         </div>
                     </div>
 
                     <div id="interpretation-box" aria-live="polite"></div>
 
                     <!-- 차트 커스텀 옵션 -->
-                    <div class="card glass mt-6" style="background: var(--bg-app);">
+                    <div class="mt-6" style="border-top: 1px solid var(--border-glass); border-bottom: 1px solid var(--border-glass); padding: 0.8rem 0;">
                         <div class="flex justify-between items-center" role="button" tabindex="0" aria-expanded="false" aria-controls="chart-options-body" style="cursor:pointer;" onclick="toggleChartOptions()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                             <h3 style="margin-bottom:0;"><i class="fa-solid fa-sliders"></i> 차트 꾸미기 옵션</h3>
                             <i class="fa-solid fa-chevron-down" id="chart-options-caret"></i>
@@ -274,11 +246,11 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="opt-point-color">데이터 점 색상</label>
-                                    <input type="color" id="opt-point-color" class="form-control" value="#7c5cf0" style="padding: 0.2rem; height: 2.2rem;">
+                                    <input type="color" id="opt-point-color" class="form-control" value="#1a202c" style="padding: 0.2rem; height: 2.2rem;">
                                 </div>
                                 <div class="form-group">
                                     <label for="opt-line-color">추세선 색상</label>
-                                    <input type="color" id="opt-line-color" class="form-control" value="#e34d3f" style="padding: 0.2rem; height: 2.2rem;">
+                                    <input type="color" id="opt-line-color" class="form-control" value="#333333" style="padding: 0.2rem; height: 2.2rem;">
                                 </div>
                                 <div class="form-group">
                                     <label for="opt-xmin">X축 최소값 (비우면 자동)</label>
@@ -304,24 +276,23 @@
                     </div>
 
                     <!-- 차트 -->
-                    <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 인터랙티브 그래프</h3>
-                    <p class="text-muted mb-3">우측 상단 📸 카메라 아이콘을 클릭해 그래프 이미지를 저장할 수 있습니다.</p>
-                    <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
+                    <h3 class="mt-6"><i class="fa-solid fa-chart-line"></i> 그래프</h3>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">그래프 오른쪽 위 카메라 아이콘으로 이미지를 저장할 수 있습니다. 휴대폰에서는 화면 캡처를 이용하세요.</p>
+                    <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식 (최소제곱법으로 구함)</div>
                     <div class="eq-display-box mb-3" id="chart-eq-latex"></div>
                     <div id="chart-container" style="width: 100%; height: 450px; border-radius: var(--radius-sm); overflow:hidden;"></div>
 
                     <!-- 잔차 그래프 -->
-                    <h3 class="mt-6"><i class="fa-solid fa-ruler-combined"></i> 잔차(Residual) 그래프</h3>
-                    <p class="text-muted mb-4">실제값과 예측값의 차이(오차)를 보여줍니다. 점들이 0을 기준으로 특별한 규칙 없이 흩어져 있을수록 모델이 데이터를 잘 설명하는 것입니다.</p>
+                    <h3 class="mt-6"><i class="fa-solid fa-ruler-combined"></i> 잔차 그래프</h3>
+                    <p class="text-muted mb-4">실제값과 예측값의 차이입니다. 점이 0 주위에 규칙 없이 흩어져 있을수록 모델이 데이터에 잘 맞습니다.</p>
                     <div id="residual-chart-container" style="width: 100%; height: 320px; border-radius: var(--radius-sm); overflow:hidden;"></div>
 
                     <details class="mt-4 text-muted" style="font-size: 0.82rem; line-height: 1.6;">
-                        <summary style="cursor:pointer;">📘 결과를 보고서에 쓸 때 참고하세요</summary>
+                        <summary style="cursor:pointer;">결과를 보고서에 쓸 때</summary>
                         <p class="mt-2">R²가 높다는 것은 "두 변수가 함께 변한다"는 뜻입니다. 그 이유(원인)까지 밝히려면 보고서에서 실험 설계나 근거를 함께 설명해 주세요.</p>
                     </details>
 
-                    <div class="mt-6 flex justify-between items-center">
-                        <span class="text-muted">도출된 수학 모델을 바탕으로 데이터를 예측해볼 수 있습니다.</span>
+                    <div class="mt-6 flex items-center" style="justify-content: flex-end;">
                         <button class="btn btn-primary" onclick="proceedToStep3()">
                             다음 단계: 데이터 예측하기 <i class="fa-solid fa-arrow-right"></i>
                         </button>
@@ -332,8 +303,8 @@
             <!-- ================= VIEW 3: 데이터 예측 ================= -->
             <div id="view-step3" class="hidden fade-in">
                 <div class="card glass">
-                    <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Step 3. 데이터 예측하기</h3>
-                    <p class="text-muted" style="margin-bottom: 1.2rem;">함수 모델링(Step 2)에서 찾은 추세선 수학 모델을 바탕으로 독립변수 값을 입력하면 종속변수의 변화를 예측해 줍니다.</p>
+                    <h3><i class="fa-solid fa-arrow-trend-up"></i> Step 3. 데이터 예측하기</h3>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">독립변수 값을 넣으면 Step 2에서 찾은 함수로 종속변수 값을 계산합니다.</p>
 
                     <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                     <div class="eq-display-box mb-3" id="predict-eq-latex"></div>
@@ -355,8 +326,8 @@
                     <div id="predict-result-box" class="hidden mt-6 alert alert-success" aria-live="polite" style="flex-direction: column; gap: 0.5rem; padding: 1.5rem;">
                         <div class="text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-chart-line"></i> 예측 결과</div>
                         <div style="font-size: 1.2rem; font-weight: 500; color: var(--text-main);">
-                            입력한 <strong id="pred-x-name" style="color: var(--primary);">독립변수</strong> 값이 <strong id="pred-x-val">0</strong>일 때, <br>
-                            예측되는 <strong id="pred-y-name" style="color: var(--danger);">종속변수</strong> 값은 <strong id="pred-y-val" style="font-size: 1.8rem; color: var(--primary);">0</strong> 입니다.
+                            입력한 <strong id="pred-x-name">독립변수</strong> 값이 <strong id="pred-x-val" style="color: var(--primary);">0</strong>일 때, <br>
+                            예측되는 <strong id="pred-y-name">종속변수</strong> 값은 <strong id="pred-y-val" style="font-size: 1.8rem; color: var(--primary);">0</strong> 입니다.
                         </div>
                     </div>
                 </div>
@@ -366,7 +337,7 @@
             <div id="view-step4" class="hidden fade-in">
                 <div class="card glass">
                     <h3><i class="fa-solid fa-square-root-variable"></i> Step 4. 정적분으로 구간 넓이 탐구하기</h3>
-                    <p class="text-muted" style="margin-bottom: 1.2rem;">함수 모델링(Step 2)에서 찾은 함수를 이용해, 구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산하고 시각화합니다.</p>
+                    <p class="text-muted" style="margin-bottom: 1.2rem;">구간 [a, b]에서 곡선과 x축 사이의 넓이(정적분 값)를 계산합니다.</p>
 
                     <div class="eq-label"><i class="fa-solid fa-calculator"></i> 추세선 방정식</div>
                     <div class="eq-display-box mb-3" id="integral-eq-preview"></div>

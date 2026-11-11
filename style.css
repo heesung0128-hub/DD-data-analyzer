@@ -1,19 +1,18 @@
 /* 1. 색상표 (Color Tokens) */
         :root {
-            --bg-app:        hsl(220, 30%, 97%);
-            --bg-sidebar:    hsl(222, 35%, 15%);
-            --bg-card:       hsla(0, 0%, 100%, 0.8);
-            --bg-card-hover: hsla(0, 0%, 100%, 0.95);
-            --border-glass:  hsla(220, 20%, 50%, 0.15);
+            --bg-app:        hsl(0, 0%, 97%);
+            --bg-sidebar:    hsl(343, 12%, 14%);
+            --bg-card:       #fff;
+            --border-glass:  hsl(0, 0%, 88%);
 
             --text-main:  hsl(222, 30%, 15%);
             --text-muted: hsl(220, 15%, 50%);
             --text-light: hsl(0, 0%, 100%);
 
-            --primary:       hsl(255, 65%, 60%);
-            --primary-hover: hsl(255, 65%, 52%);
-            --primary-light: hsl(255, 65%, 95%);
-            --primary-glow:  hsla(255, 65%, 60%, 0.3);
+            --primary:       #871B3A;
+            --primary-hover: hsl(343, 67%, 26%);
+            --primary-light: hsl(343, 45%, 96%);
+            --primary-ring:  hsla(343, 67%, 32%, 0.25);
 
             --secondary:       hsl(220, 15%, 45%);
             --secondary-hover: hsl(220, 15%, 38%);
@@ -23,9 +22,7 @@
             --danger:  hsl(5, 75%, 55%);    --danger-light:  hsl(5, 75%, 94%);
             --info:    hsl(195, 75%, 45%);  --info-light:    hsl(195, 75%, 94%);
 
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 20px -4px rgba(20, 20, 30, 0.08);
-            --shadow-lg: 0 16px 40px -10px rgba(20, 20, 30, 0.12);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
 
             --font-title: 'Outfit', 'Noto Sans KR', sans-serif;
             --font-body:  'Inter', 'Noto Sans KR', sans-serif;
@@ -39,29 +36,26 @@
 
         [data-theme="dark"] {
             color-scheme: dark;
-            --bg-app:        hsl(222, 25%, 7%);
-            --bg-sidebar:    hsl(222, 30%, 10%);
-            --bg-card:       hsla(222, 20%, 15%, 0.65);
-            --bg-card-hover: hsla(222, 20%, 18%, 0.8);
-            --border-glass:  hsla(222, 20%, 80%, 0.08);
+            --bg-app:        hsl(0, 0%, 8%);
+            --bg-sidebar:    hsl(343, 12%, 6%);
+            --bg-card:       hsl(0, 0%, 12%);
+            --border-glass:  hsl(0, 0%, 22%);
 
             --text-main:  hsl(220, 20%, 88%);
             --text-muted: hsl(220, 10%, 65%);
             --text-light: hsl(220, 20%, 95%);
 
-            --primary:       hsl(255, 75%, 66%);
-            --primary-hover: hsl(255, 75%, 72%);
-            --primary-light: hsl(255, 30%, 15%);
-            --primary-glow:  hsla(255, 75%, 66%, 0.4);
+            --primary:       hsl(343, 55%, 66%);
+            --primary-hover: hsl(343, 55%, 72%);
+            --primary-light: hsl(343, 25%, 15%);
+            --primary-ring:  hsla(343, 55%, 66%, 0.35);
 
             --success: hsl(145, 60%, 50%);  --success-light: hsl(145, 30%, 13%);
             --warning: hsl(35, 85%, 58%);   --warning-light: hsl(35, 30%, 13%);
             --danger:  hsl(5, 75%, 62%);    --danger-light:  hsl(5, 30%, 13%);
             --info:    hsl(195, 75%, 55%);  --info-light:    hsl(195, 30%, 13%);
 
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.45);
+            --shadow-sm: none;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -93,13 +87,13 @@
 
         .app-sidebar {
             width: 290px; background-color: var(--bg-sidebar); display: flex; flex-direction: column;
-            box-shadow: 4px 0 24px rgba(0,0,0,0.1); padding: 1.2rem 1.1rem; flex-shrink: 0; z-index: 10;
+            padding: 1.2rem 1.1rem; flex-shrink: 0; z-index: 10;
         }
 
         .brand-logo { display:block; padding: 1rem 0.5rem; margin-bottom: 2rem; }
         .brand-icon {
             width: 42px; height: 42px; border-radius: var(--radius-md);
-            background: linear-gradient(135deg, var(--primary), hsl(190, 75%, 50%));
+            background: var(--primary);
             display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;
         }
         .brand-title { color: var(--text-light); font-family: var(--font-title); font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
@@ -111,7 +105,7 @@
             font-weight: 500; font-size: 0.9rem;
         }
         .nav-item:hover { background-color: rgba(255, 255, 255, 0.08); color: var(--text-light); }
-        .nav-item.active { background-color: var(--primary); color: var(--text-light); box-shadow: 0 4px 12px var(--primary-glow); }
+        .nav-item.active { background-color: var(--primary); color: var(--text-light); }
 
         .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid hsla(0,0%,100%,0.1); }
 
@@ -120,10 +114,8 @@
 
         .card {
             background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-md);
-            padding: 1.25rem 1.4rem; box-shadow: var(--shadow-md); transition: var(--transition-smooth); margin-bottom: 1.1rem;
+            padding: 1.25rem 1.4rem; box-shadow: var(--shadow-sm); margin-bottom: 1.1rem;
         }
-        .card.glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        .card:hover { box-shadow: var(--shadow-lg); border-color: hsla(255, 65%, 60%, 0.15); }
 
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; cursor: pointer;
@@ -131,17 +123,18 @@
             transition: var(--transition-smooth); font-size: 0.9rem;
         }
         .btn-primary { background-color: var(--primary); color: #fff; }
-        .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 12px var(--primary-glow); transform: translateY(-1px); }
-        .btn-secondary { background-color: hsla(220,15%,50%,0.1); border: 1px solid var(--border-glass); color: var(--text-main); }
-        .btn-secondary:hover { background-color: hsla(220,15%,50%,0.2); }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        /* 다크 모드의 밝은 학교색 위에는 흰 글자 대비가 부족해 어두운 글자를 씀 */
+        [data-theme="dark"] .btn-primary, [data-theme="dark"] .nav-item.active { color: hsl(343, 45%, 10%); }
+        .btn-secondary { background-color: var(--bg-card); border: 1px solid var(--border-glass); color: var(--text-main); }
+        .btn-secondary:hover { border-color: var(--text-muted); }
         .btn-icon-label { width: 100%; justify-content: flex-start; background: transparent; color: hsla(0,0%,100%,0.6); }
 
         .form-control {
             width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); 
             background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; font-family: var(--font-body); outline: none;
         }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
-        .form-group { margin-bottom: 0.65rem; }
+                .form-group { margin-bottom: 0.65rem; }
         .form-group label { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.3rem; color: var(--text-main); }
 
         .alert { padding: 0.8rem 1rem; border-radius: var(--radius-md); display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 0.75rem; border: 1px solid transparent; }
@@ -158,25 +151,28 @@
             border: 2px dashed var(--primary); background-color: var(--primary-light); border-radius: var(--radius-md);
             padding: 3rem 2rem; text-align: center; cursor: pointer; transition: var(--transition-smooth);
         }
-        .dropzone:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--primary-glow); }
-        .dropzone i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; transition: var(--transition-smooth); }
-        .dropzone:hover i { transform: translateY(-5px); animation: bounce 1s infinite alternate; }
+        .dropzone:hover { border-color: var(--primary-hover); }
+        .dropzone i { font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem; }
 
         .table-container { overflow-x: auto; border: 1px solid var(--border-glass); border-radius: var(--radius-sm); max-height: 300px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-glass); }
         th { background-color: var(--bg-app); font-weight: 600; position: sticky; top: 0; z-index: 1; }
         
-        .stat-value { font-family: var(--font-title); font-size: 2.2rem; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+        .stat-line { display: flex; flex-wrap: wrap; gap: 0.4rem 2.5rem; padding: 0.2rem 0 0.9rem; border-bottom: 1px solid var(--border-glass); }
+        .stat-line .stat-label { color: var(--text-muted); font-size: 0.8rem; }
+        .stat-value { font-family: var(--font-title); font-size: 1.9rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+        .stat-note { color: var(--text-muted); font-size: 0.75rem; }
+        .help-line { font-size: 0.82rem; color: var(--text-main); display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-top: 0.6rem; }
+        .help-line .btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; text-decoration: none; }
         table { font-variant-numeric: tabular-nums; }
 
         /* 수식(LaTeX/KaTeX) 표시 박스 */
         .eq-display-box {
-            background: var(--bg-app); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);
-            padding: 0.9rem 1.1rem; overflow-x: auto; color: var(--primary); font-size: 1.05rem;
+            padding: 0.3rem 0; overflow-x: auto; color: var(--text-main); font-size: 1.05rem;
         }
-        .eq-display-box .katex { color: var(--primary); }
-        .eq-label { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.4rem; }
+        .eq-display-box .katex { color: var(--text-main); }
+        .eq-label { color: var(--text-main); font-size: 0.8rem; margin-bottom: 0.4rem; }
 
         /* Step1 안내 2단 레이아웃 (파일 구조 안내 / 빠르게 시작하기) */
         .info-col {
@@ -186,24 +182,23 @@
 
         /* 접근성: 키보드 포커스 표시 (마우스 클릭 시엔 표시하지 않음) */
         .form-control:focus { border-color: var(--primary); }
-        .form-control:focus-visible { box-shadow: 0 0 0 3px var(--primary-glow); }
+        .form-control:focus-visible { box-shadow: 0 0 0 3px var(--primary-ring); }
         [role="button"]:focus-visible, .dropzone:focus-visible, .btn:focus-visible, .nav-item:focus-visible {
             outline: 2px solid var(--primary); outline-offset: 2px;
         }
 
         /* 터치 상호작용: 더블탭 확대 지연 방지, 탭 하이라이트 의도적으로 지정 */
         .btn, .nav-item, .checkbox-wrapper, .dropzone, [role="button"] {
-            touch-action: manipulation; -webkit-tap-highlight-color: hsla(255, 65%, 60%, 0.15);
+            touch-action: manipulation; -webkit-tap-highlight-color: var(--primary-ring);
         }
 
         /* 체크박스 커스텀 디자인 */
         .checkbox-wrapper { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: var(--transition-smooth); }
-        .checkbox-wrapper:hover { background-color: hsla(255, 65%, 60%, 0.05); }
+        .checkbox-wrapper:hover { background-color: var(--primary-light); }
         .checkbox-wrapper input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--primary); cursor: pointer; }
         .checkbox-wrapper label { cursor: pointer; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0; font-weight: 500; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
         .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
         /* ===================== 모바일/태블릿 반응형 ===================== */
@@ -213,12 +208,11 @@
 
             .app-sidebar {
                 width: 100%; flex-direction: row; align-items: center; flex-wrap: wrap;
-                padding: 0.8rem 1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                padding: 0.8rem 1rem;
             }
             .brand-logo { margin-bottom: 0; padding: 0.2rem; }
             .brand-logo .flex { margin-bottom: 0 !important; }
-            .brand-logo > div:last-child { display: none; } /* 학교 부제 텍스트 숨김 */
-
+    
             .nav-list {
                 flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 0.4rem;
                 flex-grow: 1; margin: 0 0.5rem;
@@ -265,8 +259,5 @@
         /* 움직임에 민감한 사용자를 위한 애니메이션 축소 */
         @media (prefers-reduced-motion: reduce) {
             .fade-in { animation: none; }
-            .dropzone:hover i { animation: none; transform: none; }
-            .dropzone:hover { transform: none; }
-            .btn-primary:hover { transform: none; }
             * { transition-duration: 0.01ms !important; }
         }

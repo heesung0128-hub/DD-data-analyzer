@@ -4,6 +4,12 @@
         poly2: '2차 다항', poly3: '3차 다항', poly4: '4차 다항'
     };
 
+    // --- 그래프 점·넓이 색: 글자색과 같은 검정, 다크 모드에서는 밝은 회색 ---
+    function inkColor(alpha) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        return isDark ? `rgba(226, 232, 240, ${alpha})` : `rgba(26, 32, 44, ${alpha})`;
+    }
+
     // --- 화면 라우팅 (메뉴 전환) ---
     function switchView(viewName) {
         document.getElementById('view-step1').classList.add('hidden');
@@ -590,7 +596,7 @@
         const best = results[0];
 
         let tableHtml = `<div class="alert alert-info" style="flex-direction:column;">
-            <strong><i class="fa-solid fa-wand-magic-sparkles"></i> 자동 추천 결과: <span style="color:var(--primary);">${MODEL_LABELS[best.type]} 함수</span> 모델을 추천합니다</strong>
+            <strong><i class="fa-solid fa-list-check"></i> 자동 추천 결과: <span style="color:var(--primary);">${MODEL_LABELS[best.type]} 함수</span> 모델을 추천합니다</strong>
             <p class="text-muted mt-2" style="font-size:0.78rem; line-height:1.5;">
                 공정한 비교를 위해 모든 모델에 공통으로 사용 가능한 데이터 ${n}개(x&gt;0, y&gt;0 기준${excludedCount > 0 ? `, 원본 대비 ${excludedCount}개 제외` : ''})를 사용했습니다.
                 단순 R²가 아니라 모델의 항 개수(자유도)를 보정한 <b>조정된 R²(Adjusted R²)</b>로 비교했는데, 차수가 높을수록 R²는 항상 커지는 경향이 있어 그대로 비교하면 과적합(overfitting)된 모델이 부당하게 유리해지기 때문입니다.
@@ -600,7 +606,7 @@
         results.forEach(r => {
             const isBest = r.type === best.type;
             tableHtml += `<tr style="${isBest ? 'font-weight:700; color: var(--primary);' : ''}">
-                <td>${isBest ? '⭐ ' : ''}${MODEL_LABELS[r.type]}</td>
+                <td>${MODEL_LABELS[r.type]}${isBest ? ' (추천)' : ''}</td>
                 <td>${r.p}</td>
                 <td>${r.r2.toFixed(4)}</td>
                 <td>${r.adjR2.toFixed(4)}</td>
@@ -820,7 +826,6 @@
         // UI 업데이트
         document.getElementById('result-card').classList.remove('hidden');
         const eqLatexStr = buildEquationLatex({ regResult, modelType, shiftX, useZeroAdjust });
-        renderLatex(document.getElementById('res-eq'), eqLatexStr);
         renderLatex(document.getElementById('chart-eq-latex'), eqLatexStr);
         document.getElementById('res-r2').textContent = r2.toFixed(4);
         document.getElementById('res-p').textContent = p_value.toFixed(4);
@@ -832,9 +837,9 @@
                 <div class="alert alert-success">
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
-                        <strong>강력한 설명력!</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 매우 높습니다. 선택하신 <b>[${MODEL_LABELS[modelType]}] 함수식</b>이 두 변수 간의 관계를 잘 설명하고 있습니다. 탐구 보고서에 이 함수식을 핵심 수학적 근거로 제시해 보세요!</p>
-                        <p class="text-muted" style="font-size:0.8rem;">💡 Tip: 잔차 그래프에서 점들이 고르게 흩어져 있는지 함께 확인하면 근거가 더 탄탄해집니다.</p>
+                        <strong>설명력 높음</strong>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 높습니다. 선택한 <b>[${MODEL_LABELS[modelType]}] 함수식</b>이 두 변수의 관계를 잘 설명합니다. 탐구 보고서의 수학적 근거로 이 함수식을 쓸 수 있습니다.</p>
+                        <p class="text-muted" style="font-size:0.8rem;">잔차 그래프에서 점들이 고르게 흩어져 있는지도 함께 확인하세요.</p>
                     </div>
                 </div>`;
         } else if (r2 >= 0.4) {
@@ -842,8 +847,8 @@
                 <div class="alert alert-info">
                     <i class="fa-solid fa-chart-bar"></i>
                     <div>
-                        <strong>유의미한 설명력</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 중간 정도입니다. 선택하신 함수식이 어느 정도 의미 있는 패턴을 보여주지만, 함수식으로 설명되지 않는 데이터도 제법 존재합니다. 다른 추세선 모델을 적용했을 때 더 높아지는지 비교해 보세요.</p>
+                        <strong>설명력 보통</strong>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 중간 정도입니다. 선택한 함수식이 관계의 일부를 설명하지만, 함수식에서 벗어난 데이터도 적지 않습니다. 다른 추세선 모델을 적용했을 때 더 높아지는지 비교해 보세요.</p>
                     </div>
                 </div>`;
         } else {
@@ -852,7 +857,7 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <div>
                         <strong>설명력 부족</strong>
-                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 낮습니다. 데이터가 선택한 함수식과 잘 맞지 않거나, 다른 요인의 영향이 있을 수 있습니다. 추세선 모델을 다른 함수(다항, 로그 등)로 변경해 보세요!</p>
+                        <p>결정계수(R²)가 ${r2.toFixed(2)}로 낮습니다. 데이터가 선택한 함수식과 잘 맞지 않거나, 다른 요인의 영향이 있을 수 있습니다. 추세선 모델을 다른 함수(다항, 로그 등)로 바꿔 보세요.</p>
                     </div>
                 </div>`;
         }
@@ -942,6 +947,8 @@
 
         window.currentChartOptions = opts;
         renderMainChart();
+        const d = window.currentChartData;
+        if (d.residuals) renderResidualChart(d.xData, d.residuals, d.xLabel);
     }
 
     // --- 그래프 렌더링 (Step2/3/4 공용) ---
@@ -954,12 +961,12 @@
 
         const scatter = {
             x: xData, y: yData, mode: 'markers', type: 'scatter', name: '실제 데이터',
-            marker: { color: overrides.pointColor || 'hsl(255, 65%, 60%)', size: 8, opacity: 0.7 }
+            marker: { color: overrides.pointColor || inkColor(0.75), size: 8 }
         };
 
         const trendline = {
             x: curveX, y: curveY, mode: 'lines', type: 'scatter', name: '추세선',
-            line: { color: overrides.lineColor || 'hsl(5, 75%, 55%)', dash: 'dash', width: overrides.lineWidth || 3 }
+            line: { color: overrides.lineColor || textColor, dash: 'dash', width: overrides.lineWidth || 3 }
         };
 
         const xaxis = { title: overrides.xLabel || xLabel, gridcolor: gridColor, zerolinecolor: gridColor };
@@ -1016,12 +1023,12 @@
 
         const scatter = {
             x: xData, y: residuals, mode: 'markers', type: 'scatter', name: '잔차',
-            marker: { color: 'hsl(195, 75%, 45%)', size: 8, opacity: 0.75 }
+            marker: { color: (window.currentChartOptions || {}).pointColor || inkColor(0.75), size: 8 }
         };
         const minX = Math.min(...xData), maxX = Math.max(...xData);
         const zeroLine = {
             x: [minX, maxX], y: [0, 0], mode: 'lines', type: 'scatter', name: '기준선 (잔차=0)',
-            line: { color: 'hsl(5, 75%, 55%)', dash: 'dot', width: 2 }
+            line: { color: textColor, dash: 'dot', width: 2 }
         };
 
         const layout = {
@@ -1160,7 +1167,7 @@
             integralValue = sign * polynomialDefiniteIntegral(regResult.equation, loT, hiT);
             methodNote = '다항함수이므로 부정적분 공식을 이용해 정확한 값을 계산했습니다.';
             formulaBox.style.display = 'block';
-            renderLatex(formulaBox, `${polynomialAntiderivativeLatex(regResult.equation, xTerm)} \\;\\Rightarrow\\; \\int = F(${hi}) - F(${lo})`);
+            renderLatex(formulaBox, `${polynomialAntiderivativeLatex(regResult.equation, xTerm)} \\;\\Rightarrow\\; \\int = F(${b}) - F(${a})`);
         } else {
             integralValue = sign * simpsonIntegral(f, lo, hi, 200);
             methodNote = `${modelType === 'exponential' ? '지수' : '로그'}함수는 닫힌 형태의 부정적분 대신, 심슨(Simpson)의 법칙을 이용한 수치적분 근사값을 계산했습니다.`;
@@ -1172,16 +1179,16 @@
 
         document.getElementById('integral-result-box').classList.remove('hidden');
         document.getElementById('integral-method-note').textContent = methodNote;
-        renderLatex(document.getElementById('integral-notation-latex'), `\\int_{${lo}}^{${hi}} f(x)\\,dx ${isPolynomialFamily(modelType) ? '=' : '\\approx'}`);
+        renderLatex(document.getElementById('integral-notation-latex'), `\\int_{${a}}^{${b}} f(x)\\,dx ${isPolynomialFamily(modelType) ? '=' : '\\approx'}`);
         document.getElementById('integral-result-val').textContent = integralValue.toFixed(4);
 
         const signNote = document.getElementById('integral-sign-note');
-        if (integralValue < 0) {
-            signNote.textContent = '결과가 음수예요. 이 구간에서는 곡선이 x축 아래에 있어서 정적분 값이 음수로 나옵니다.';
-            signNote.classList.remove('hidden');
-        } else {
-            signNote.classList.add('hidden');
-        }
+        let signText = '';
+        if (a > b && integralValue < 0) signText = '구간 시작값보다 구간 끝값이 작아 정적분 값이 음수로 나옵니다.';
+        else if (a > b) signText = '구간 시작값보다 구간 끝값이 작고 이 구간에서는 곡선이 x축 아래쪽에 더 많이 있어, 정적분 값이 양수로 나옵니다.';
+        else if (integralValue < 0) signText = '이 구간에서는 곡선이 x축 아래쪽에 더 많이 있어 정적분 값이 음수로 나옵니다.';
+        signNote.textContent = signText;
+        signNote.classList.toggle('hidden', !signText);
 
         renderIntegralChart(lo, hi);
     }
@@ -1195,11 +1202,11 @@
 
         const scatter = {
             x: d.xData, y: d.yData, mode: 'markers', type: 'scatter', name: '실제 데이터',
-            marker: { color: overrides.pointColor || 'hsl(255, 65%, 60%)', size: 7, opacity: 0.5 }
+            marker: { color: overrides.pointColor || inkColor(0.5), size: 7 }
         };
         const trendline = {
             x: d.curveX, y: d.curveY, mode: 'lines', type: 'scatter', name: '함수 곡선',
-            line: { color: overrides.lineColor || 'hsl(5, 75%, 55%)', dash: 'dash', width: 2 }
+            line: { color: overrides.lineColor || textColor, dash: 'dash', width: 2 }
         };
 
         const fillX = [], fillY = [];
@@ -1212,7 +1219,7 @@
         }
         const fillArea = {
             x: fillX, y: fillY, mode: 'lines', type: 'scatter', name: `구간 [${lo}, ${hi}] 넓이`,
-            fill: 'tozeroy', fillcolor: 'hsla(255, 65%, 60%, 0.35)', line: { color: 'hsl(255, 65%, 45%)', width: 1 }
+            fill: 'tozeroy', fillcolor: isDark ? 'hsla(343, 55%, 66%, 0.3)' : 'hsla(343, 67%, 32%, 0.25)', line: { color: isDark ? 'hsl(343, 55%, 66%)' : '#871B3A', width: 1 }
         };
 
         const layout = {
