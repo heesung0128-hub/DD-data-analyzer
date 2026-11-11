@@ -939,8 +939,11 @@
         if (title) opts.title = title;
         if (xlabel) opts.xLabel = xlabel;
         if (ylabel) opts.yLabel = ylabel;
-        opts.pointColor = document.getElementById('opt-point-color').value;
-        opts.lineColor = document.getElementById('opt-line-color').value;
+        // 기본값(검정) 그대로면 덮어쓰지 않아 다크 모드에서 밝은 색으로 그려짐
+        const pointEl = document.getElementById('opt-point-color');
+        const lineEl = document.getElementById('opt-line-color');
+        if (pointEl.value !== pointEl.defaultValue) opts.pointColor = pointEl.value;
+        if (lineEl.value !== lineEl.defaultValue) opts.lineColor = lineEl.value;
         opts.lineWidth = parseFloat(document.getElementById('opt-line-width').value) || 3;
         if (xmin !== '' && xmax !== '') opts.xRange = [parseFloat(xmin), parseFloat(xmax)];
         if (ymin !== '' && ymax !== '') opts.yRange = [parseFloat(ymin), parseFloat(ymax)];
@@ -955,7 +958,7 @@
     function renderChart(containerId, xData, yData, curveX, curveY, xLabel, yLabel, overrides) {
         overrides = overrides || {};
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#e2e8f0' : '#1a202c';
+        const textColor = inkColor(1);
         const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const paperColor = 'rgba(0,0,0,0)';
 
@@ -1018,7 +1021,7 @@
     // --- 잔차 그래프 렌더링 ---
     function renderResidualChart(xData, residuals, xLabel) {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#e2e8f0' : '#1a202c';
+        const textColor = inkColor(1);
         const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
 
         const scatter = {
@@ -1196,7 +1199,7 @@
     function renderIntegralChart(lo, hi) {
         const d = window.currentChartData;
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#e2e8f0' : '#1a202c';
+        const textColor = inkColor(1);
         const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
         const overrides = window.currentChartOptions || {};
 

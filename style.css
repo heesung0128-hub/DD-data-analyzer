@@ -233,12 +233,6 @@
 
             #chart-container, #residual-chart-container, #integral-chart-container, #predict-chart-container { height: 300px !important; }
 
-            /* 통계 카드 3열 → 1열 */
-            .content-body [style*="grid-template-columns: repeat(3, 1fr)"],
-            .content-body [style*="grid-template-columns: repeat(2, 1fr)"] {
-                grid-template-columns: 1fr !important;
-            }
-
             /* 헤더 내 flex 영역(제목 + 옵션 컨트롤)이 좁아져 글자가 세로로 깨지는 것 방지 */
             .content-body .flex.justify-between.items-center {
                 flex-wrap: wrap;
